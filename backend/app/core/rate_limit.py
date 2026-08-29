@@ -1,10 +1,19 @@
 import time
 import threading
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional
 from fastapi import Request
+from app.core.config import settings
 from app.core.exceptions import AppException
 
 class RateLimiter:
+    """
+    In-Process Sliding Window Rate Limiter.
+    
+    IMPORTANT LIMITATION:
+    This rate limiter is process-local (in-memory). If Uvicorn runs multiple worker processes,
+    each worker maintains its own isolated memory bucket. In production (Phase 18), Nginx
+    rate-limiting (limit_req_zone) acts as the primary distributed defense-in-depth across worker processes.
+    """
     def __init__(self, max_requests: int, window_seconds: int):
         self.max_requests = max_requests
         self.window_seconds = window_seconds
@@ -12,8 +21,26 @@ class RateLimiter:
         self._lock = threading.Lock()
 
     def get_client_ip(self, request: Request) -> str:
-        client_ip = request.client.host if request.client else "127.0.0.1"
-        return client_ip
+        """
+        Extracts client IP address.
+        
+        Development: Uses direct connection IP `request.client.host`.
+        Production Behind Nginx: Extensions point for trusted proxy header evaluation (`X-Forwarded-For`).
+        Note: Naive reliance on `request.client.host` behind Nginx returns the Nginx container IP.
+        Nginx must overwrite forwarded headers in Phase 18 deployment before headers can be trusted.
+        """
+        # Production Trusted Proxy Extension Point
+        if settings.APP_ENV == "production":
+            # If request comes from trusted proxy, evaluate X-Forwarded-For header
+            x_forwarded = request.headers.get("X-Forwarded-For")
+            if x_forwarded:
+                # X-Forwarded-For format: client, proxy1, proxy2
+                client_ip = x_forwarded.split(",")[0].strip()
+                if client_ip:
+                    return client_ip
+
+        # Local development / Direct connection fallback
+        return request.client.host if request.client else "127.0.0.1"
 
     def check(self, request: Request) -> None:
         ip = self.get_client_ip(request)
