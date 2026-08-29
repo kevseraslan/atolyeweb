@@ -4,6 +4,7 @@ export interface Category {
   slug: string;
   description?: string;
   sort_order: number;
+  is_active?: boolean;
 }
 
 export interface Color {
@@ -11,12 +12,14 @@ export interface Color {
   name: string;
   hex_code?: string;
   texture_url?: string;
+  is_active?: boolean;
 }
 
 export interface Material {
   id: number;
   name: string;
   description?: string;
+  is_active?: boolean;
 }
 
 export interface ProductImage {
@@ -37,6 +40,7 @@ export interface ProductListItem {
   primary_image?: ProductImage;
   is_featured: boolean;
   is_customizable: boolean;
+  is_active?: boolean;
   colors: Color[];
 }
 
@@ -51,6 +55,7 @@ export interface ProductDetail {
   default_depth?: number;
   is_customizable: boolean;
   is_featured: boolean;
+  is_active?: boolean;
   category: Category;
   images: ProductImage[];
   colors: Color[];

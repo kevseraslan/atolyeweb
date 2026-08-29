@@ -28,9 +28,11 @@ class OrderStatusHistory(Base):
     old_status: Mapped[Optional[str]] = mapped_column(String(30), nullable=True)
     new_status: Mapped[str] = mapped_column(String(30), nullable=False)
 
-    # Changed by admin ID (Nullable BIGINT without FK constraint until Phase 12 Admins model)
     changed_by_admin_id: Mapped[Optional[int]] = mapped_column(
-        BigInteger().with_variant(Integer, "sqlite"), nullable=True
+        BigInteger().with_variant(Integer, "sqlite"),
+        ForeignKey("admins.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
     )
     note: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
@@ -40,3 +42,4 @@ class OrderStatusHistory(Base):
 
     # Relationships
     order: Mapped["Order"] = relationship("Order", back_populates="status_history")
+    changed_by_admin: Mapped[Optional["Admin"]] = relationship("Admin")

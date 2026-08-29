@@ -92,6 +92,9 @@ class Order(Base):
     status_history: Mapped[List["OrderStatusHistory"]] = relationship(
         "OrderStatusHistory", back_populates="order", cascade="all, delete-orphan"
     )
+    admin_notes: Mapped[List["OrderAdminNote"]] = relationship(
+        "OrderAdminNote", back_populates="order", cascade="all, delete-orphan"
+    )
 
     __table_args__ = (
         Index("idx_orders_status_created", "status", "created_at"),

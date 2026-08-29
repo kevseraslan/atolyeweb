@@ -8,6 +8,9 @@ from app.models.product_material import ProductMaterial
 from app.models.enums import OrderStatus
 from app.models.order import Order
 from app.models.order_status_history import OrderStatusHistory
+from app.models.admin import Admin
+from app.models.order_admin_note import OrderAdminNote
+from app.models.site_settings import SiteSettings
 
 __all__ = [
     "Category",
@@ -20,4 +23,7 @@ __all__ = [
     "OrderStatus",
     "Order",
     "OrderStatusHistory",
+    "Admin",
+    "OrderAdminNote",
+    "SiteSettings",
 ]
