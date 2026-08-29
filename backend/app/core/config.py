@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     FRONTEND_URL: str = "http://localhost:3000"
 
     AUTH_SECRET: str = "artisan_woodworks_dev_secret_key_2026_change_in_prod"
+    TRUST_PROXY: bool = False  # Opt-in for trusting Nginx X-Forwarded-For headers after Phase 18 deployment
     CLOUDINARY_CLOUD_NAME: str = ""
     CLOUDINARY_API_KEY: str = ""
     CLOUDINARY_API_SECRET: str = ""

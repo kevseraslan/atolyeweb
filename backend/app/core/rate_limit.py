@@ -11,7 +11,7 @@ class RateLimiter:
     
     IMPORTANT LIMITATION:
     This rate limiter is process-local (in-memory). If Uvicorn runs multiple worker processes,
-    each worker maintains its own isolated memory bucket. In production (Phase 18), Nginx
+    each worker maintains an isolated memory bucket. In production (Phase 18), Nginx
     rate-limiting (limit_req_zone) acts as the primary distributed defense-in-depth across worker processes.
     """
     def __init__(self, max_requests: int, window_seconds: int):
@@ -24,17 +24,14 @@ class RateLimiter:
         """
         Extracts client IP address.
         
-        Development: Uses direct connection IP `request.client.host`.
-        Production Behind Nginx: Extensions point for trusted proxy header evaluation (`X-Forwarded-For`).
-        Note: Naive reliance on `request.client.host` behind Nginx returns the Nginx container IP.
-        Nginx must overwrite forwarded headers in Phase 18 deployment before headers can be trusted.
+        Requires explicit opt-in via `settings.TRUST_PROXY = True`.
+        Only when TRUST_PROXY is enabled (after Stage 18 Nginx header sanitization/overwrite setup)
+        will `X-Forwarded-For` be evaluated.
+        Default is `False` to prevent IP spoofing when exposed directly or behind untrusted proxies.
         """
-        # Production Trusted Proxy Extension Point
-        if settings.APP_ENV == "production":
-            # If request comes from trusted proxy, evaluate X-Forwarded-For header
+        if settings.TRUST_PROXY:
             x_forwarded = request.headers.get("X-Forwarded-For")
             if x_forwarded:
-                # X-Forwarded-For format: client, proxy1, proxy2
                 client_ip = x_forwarded.split(",")[0].strip()
                 if client_ip:
                     return client_ip
