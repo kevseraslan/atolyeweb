@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import {
@@ -11,10 +11,15 @@ import {
 } from "@/features/admin/api";
 import { AdminOrderDetail } from "@/features/admin/types";
 
+const PAGE_SIZE = 25;
+
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<AdminOrderDetail[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedStatus, setSelectedStatus] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+  const [page, setPage] = useState<number>(1);
   const [selectedOrder, setSelectedOrder] = useState<AdminOrderDetail | null>(null);
 
   // Status Modal State
@@ -32,40 +37,53 @@ export default function AdminOrdersPage() {
   const [addingNote, setAddingNote] = useState(false);
 
   const [message, setMessage] = useState<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // 300ms Debounce for Search Term
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setPage(1); // Reset page on new search
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
 
   const loadOrders = useCallback(async () => {
+    // Abort pending previous search request if any
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setLoading(true);
     try {
-      const data = await getAdminOrders(selectedStatus || undefined);
+      const offset = (page - 1) * PAGE_SIZE;
+      const data = await getAdminOrders({
+        status: selectedStatus || undefined,
+        search: debouncedSearch || undefined,
+        limit: PAGE_SIZE,
+        offset,
+        signal: controller.signal,
+      });
       setOrders(data);
       if (selectedOrder) {
         const updated = data.find((o) => o.id === selectedOrder.id);
         if (updated) setSelectedOrder(updated);
       }
     } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") {
+        return; // Ignore cancelled stale request
+      }
       console.error("Failed to load admin orders:", err);
     } finally {
       setLoading(false);
     }
-  }, [selectedStatus, selectedOrder]);
+  }, [selectedStatus, debouncedSearch, page, selectedOrder]);
 
   useEffect(() => {
-    let isMounted = true;
-    getAdminOrders(selectedStatus || undefined)
-      .then((data) => {
-        if (isMounted) {
-          setOrders(data);
-          setLoading(false);
-        }
-      })
-      .catch((err) => {
-        console.error(err);
-        if (isMounted) setLoading(false);
-      });
-    return () => {
-      isMounted = false;
-    };
-  }, [selectedStatus]);
+    loadOrders();
+  }, [selectedStatus, debouncedSearch, page]);
 
   const handleStatusUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,29 +146,39 @@ export default function AdminOrdersPage() {
         <div>
           <h1 className="font-serif text-3xl font-bold text-[#442a22]">Siparişler & Teklifler</h1>
           <p className="text-sm text-[#504441] mt-1">Müşteri taleplerini inceleyin, durum ve teklif fiyatlarını yönetin.</p>
-          <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 px-2 py-1 rounded mt-2 inline-block">
-            * Müşteri kişisel verileri yalnızca sipariş sürecinin yürütülmesi amacıyla kullanılmalıdır.
-          </p>
         </div>
 
-        {/* Filter Dropdown */}
-        <select
-          value={selectedStatus}
-          onChange={(e) => setSelectedStatus(e.target.value)}
-          className="p-2.5 bg-white border border-[#d4c3be] rounded text-sm text-[#1b1c1c]"
-        >
-          <option value="">Tüm Durumlar</option>
-          <option value="RECEIVED">Talebiniz Alındı</option>
-          <option value="UNDER_REVIEW">İnceleniyor</option>
-          <option value="CONTACTED">İletişime Geçildi</option>
-          <option value="QUOTED">Teklif Hazırlandı</option>
-          <option value="APPROVED">Onaylandı</option>
-          <option value="IN_PRODUCTION">Üretimde</option>
-          <option value="FINISHING">Son İşlemler</option>
-          <option value="READY">Teslimata Hazır</option>
-          <option value="DELIVERED">Teslim Edildi</option>
-          <option value="CANCELLED">İptal Edildi</option>
-        </select>
+        {/* Filter Controls: Search & Status */}
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <input
+            type="text"
+            placeholder="Takip No, Müşteri veya Tel Ara..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="p-2.5 bg-white border border-[#d4c3be] rounded text-sm text-[#1b1c1c] w-full sm:w-64"
+          />
+
+          <select
+            value={selectedStatus}
+            onChange={(e) => {
+              setSelectedStatus(e.target.value);
+              setPage(1);
+            }}
+            className="p-2.5 bg-white border border-[#d4c3be] rounded text-sm text-[#1b1c1c]"
+          >
+            <option value="">Tüm Durumlar</option>
+            <option value="RECEIVED">Talebiniz Alındı</option>
+            <option value="UNDER_REVIEW">İnceleniyor</option>
+            <option value="CONTACTED">İletişime Geçildi</option>
+            <option value="QUOTED">Teklif Hazırlandı</option>
+            <option value="APPROVED">Onaylandı</option>
+            <option value="IN_PRODUCTION">Üretimde</option>
+            <option value="FINISHING">Son İşlemler</option>
+            <option value="READY">Teslimata Hazır</option>
+            <option value="DELIVERED">Teslim Edildi</option>
+            <option value="CANCELLED">İptal Edildi</option>
+          </select>
+        </div>
       </div>
 
       {message && (
@@ -162,13 +190,13 @@ export default function AdminOrdersPage() {
       {/* Orders Table & Detail Split */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Orders List */}
-        <div className="lg:col-span-7 bg-white border border-[#e5e2e1] rounded-lg shadow-sm overflow-hidden">
+        <div className="lg:col-span-7 flex flex-col justify-between bg-white border border-[#e5e2e1] rounded-lg shadow-sm overflow-hidden min-h-[500px]">
           {loading ? (
             <div className="p-8 text-center text-[#827470]">Yükleniyor...</div>
           ) : orders.length === 0 ? (
             <div className="p-8 text-center text-[#827470]">Sipariş talebi bulunamadı.</div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto flex-grow">
               <table className="w-full text-left text-sm">
                 <thead className="bg-[#f6f3f2] text-xs uppercase font-semibold text-[#827470] border-b border-[#e5e2e1]">
                   <tr>
@@ -216,6 +244,29 @@ export default function AdminOrdersPage() {
               </table>
             </div>
           )}
+
+          {/* Pagination Controls */}
+          <div className="p-4 bg-[#f6f3f2] border-t border-[#e5e2e1] flex items-center justify-between">
+            <span className="text-xs text-[#827470]">Sayfa {page} (25 kayıt/sayfa)</span>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page <= 1 || loading}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >
+                Önceki Sayfa
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={orders.length < PAGE_SIZE || loading}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                Sonraki Sayfa
+              </Button>
+            </div>
+          </div>
         </div>
 
         {/* Selected Order Detail Panel */}

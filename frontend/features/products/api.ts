@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { fetchServerApi } from "@/lib/api/server";
 import {
   Category,
@@ -46,13 +47,15 @@ export async function getProducts(params?: {
   }
 }
 
-export async function getProductBySlug(
-  slug: string
-): Promise<ProductDetail | null> {
-  try {
-    return await fetchServerApi<ProductDetail>(`/products/${slug}`);
-  } catch (error) {
-    console.error(`Failed to fetch product with slug '${slug}':`, error);
-    return null;
+// React cache() memoizes getProductBySlug per request lifecycle.
+// Guarantees generateMetadata() and ProductDetailPage share 1 single backend fetch!
+export const getProductBySlug = cache(
+  async (slug: string): Promise<ProductDetail | null> => {
+    try {
+      return await fetchServerApi<ProductDetail>(`/products/${slug}`);
+    } catch (error) {
+      console.error(`Failed to fetch product with slug '${slug}':`, error);
+      return null;
+    }
   }
-}
+);

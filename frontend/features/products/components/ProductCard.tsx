@@ -1,6 +1,6 @@
-/* eslint-disable @next/next/no-img-element */
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ProductListItem } from "../types";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -14,18 +14,20 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='600' viewBox='0 0 800 600'><rect width='100%' height='100%' fill='%23f0eded'/><text x='50%' y='50%' font-family='serif' font-size='24' fill='%23442a22' text-anchor='middle' dy='.3em'>Özel Mobilya Atölyesi</text></svg>";
 
   const imageUrl = product.primary_image?.secure_url || fallbackImage;
+  const isDataUri = imageUrl.startsWith("data:");
 
   return (
     <article className="hover-lift group flex flex-col bg-[#fcf9f8] rounded border border-[#e5e2e1] overflow-hidden">
       <div className="relative w-full aspect-[4/3] bg-[#f6f3f2] overflow-hidden">
-        <img
+        <Image
           src={imageUrl}
           alt={product.primary_image?.alt_text || product.name}
-          loading="lazy"
-          decoding="async"
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          fill
+          unoptimized={isDataUri}
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          className="object-cover transition-transform duration-700 group-hover:scale-105"
         />
-        <div className="absolute top-4 left-4 flex gap-2">
+        <div className="absolute top-4 left-4 flex gap-2 z-10">
           <Badge variant="tertiary">{product.category.name}</Badge>
           {product.is_featured && <Badge variant="primary">Öne Çıkan</Badge>}
         </div>

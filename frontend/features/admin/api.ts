@@ -101,10 +101,24 @@ export async function createAdminMaterial(data: Partial<Material>): Promise<Mate
   });
 }
 
-// Orders
-export async function getAdminOrders(statusFilter?: string): Promise<AdminOrderDetail[]> {
-  const query = statusFilter ? `?status=${encodeURIComponent(statusFilter)}` : "";
-  return await fetchClientApi<AdminOrderDetail[]>(`/admin/orders${query}`);
+// Orders with Search, Status, Limit, Offset and AbortSignal Support
+export async function getAdminOrders(params?: {
+  status?: string;
+  search?: string;
+  limit?: number;
+  offset?: number;
+  signal?: AbortSignal;
+}): Promise<AdminOrderDetail[]> {
+  const query = new URLSearchParams();
+  if (params?.status) query.set("status", params.status);
+  if (params?.search?.trim()) query.set("search", params.search.trim());
+  if (params?.limit) query.set("limit", String(params.limit));
+  if (params?.offset) query.set("offset", String(params.offset));
+
+  const endpoint = `/admin/orders${query.toString() ? `?${query.toString()}` : ""}`;
+  return await fetchClientApi<AdminOrderDetail[]>(endpoint, {
+    signal: params?.signal,
+  });
 }
 
 export async function updateAdminOrderStatus(orderId: number, newStatus: string, note?: string): Promise<void> {
