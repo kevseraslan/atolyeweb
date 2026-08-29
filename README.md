@@ -4,10 +4,11 @@
 
 ## Teknoloji Stack
 
-* **Frontend:** Next.js (App Router, TypeScript, Tailwind CSS)
-* **Backend:** FastAPI (Python, SQLAlchemy 2.x Async, Alembic, Pydantic)
-* **Veritabanı:** PostgreSQL (Local Docker Container / Managed PostgreSQL)
-* **Medya Yönetimi:** Cloudinary CDN
+* **Frontend:** Next.js 16 (App Router, TypeScript 5, Tailwind CSS v4)
+* **Backend:** FastAPI 0.141 (Python 3.10, SQLAlchemy 2.0 Async, Alembic 1.19, Pydantic 2.13)
+* **Veritabanı (Local):** PostgreSQL 16 (Local Docker Container)
+* **Production Hedefi:** Self-Managed PostgreSQL on Contabo Ubuntu VPS + Nginx + Systemd
+* **Medya Yönetimi:** Cloudinary Free CDN (Yalnız Admin içerikleri: ürünler ve dokular)
 
 ## Monorepo Yapısı
 
@@ -16,7 +17,7 @@ furniture-workshop/
 ├── frontend/         # Next.js Frontend Uygulaması
 ├── backend/          # FastAPI REST API Backend Uygulaması
 ├── docs/             # Mimari ve Sistem Dokümanları
-├── docker-compose.yml# Local PostgreSQL Container Yapılandırması
+├── compose.yaml      # Local PostgreSQL Container Yapılandırması
 └── README.md
 ```
 
