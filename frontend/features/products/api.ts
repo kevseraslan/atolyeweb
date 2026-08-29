@@ -1,0 +1,58 @@
+import { fetchApi } from "@/lib/api/client";
+import {
+  Category,
+  ProductListItem,
+  ProductDetail,
+  PaginatedResponse,
+} from "./types";
+
+export async function getCategories(): Promise<Category[]> {
+  try {
+    return await fetchApi<Category[]>("/categories");
+  } catch (error) {
+    console.error("Failed to fetch categories:", error);
+    return [];
+  }
+}
+
+export async function getProducts(params?: {
+  category?: string;
+  featured?: boolean;
+  page?: number;
+  pageSize?: number;
+}): Promise<PaginatedResponse<ProductListItem>> {
+  const query = new URLSearchParams();
+  if (params?.category) query.set("category", params.category);
+  if (params?.featured !== undefined)
+    query.set("featured", String(params.featured));
+  if (params?.page) query.set("page", String(params.page));
+  if (params?.pageSize) query.set("page_size", String(params.pageSize));
+
+  const endpoint = `/products${
+    query.toString() ? `?${query.toString()}` : ""
+  }`;
+
+  try {
+    return await fetchApi<PaginatedResponse<ProductListItem>>(endpoint);
+  } catch (error) {
+    console.error("Failed to fetch products:", error);
+    return {
+      items: [],
+      total: 0,
+      page: 1,
+      page_size: 12,
+      total_pages: 0,
+    };
+  }
+}
+
+export async function getProductBySlug(
+  slug: string
+): Promise<ProductDetail | null> {
+  try {
+    return await fetchApi<ProductDetail>(`/products/${slug}`);
+  } catch (error) {
+    console.error(`Failed to fetch product with slug '${slug}':`, error);
+    return null;
+  }
+}

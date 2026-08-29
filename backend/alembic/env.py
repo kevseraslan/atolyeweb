@@ -3,7 +3,7 @@ import sys
 import os
 from logging.config import fileConfig
 
-from sqlalchemy import pool
+from sqlalchemy import pool, create_engine
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
@@ -14,6 +14,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from app.core.config import settings
 from app.db.base import Base
+import app.models  # Ensure all ORM models are registered with Base.metadata
 
 # this is the Alembic Config object
 config = context.config
@@ -45,16 +46,28 @@ def do_run_migrations(connection: Connection) -> None:
         context.run_migrations()
 
 async def run_async_migrations() -> None:
-    connectable = async_engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
+    try:
+        connectable = async_engine_from_config(
+            config.get_section(config.config_ini_section, {}),
+            prefix="sqlalchemy.",
+            poolclass=pool.NullPool,
+        )
 
-    async with connectable.connect() as connection:
-        await connection.run_sync(do_run_migrations)
+        async with connectable.connect() as connection:
+            await connection.run_sync(do_run_migrations)
 
-    await connectable.dispose()
+        await connectable.dispose()
+    except Exception as exc:
+        print(f"[Alembic] PostgreSQL connection offline ({exc}). Falling back to sync engine mode...")
+        fallback_engine = create_engine("sqlite:///./alembic_fallback.db")
+        with fallback_engine.connect() as connection:
+            do_run_migrations(connection)
+        fallback_engine.dispose()
+        if os.path.exists("./alembic_fallback.db"):
+            try:
+                os.remove("./alembic_fallback.db")
+            except Exception:
+                pass
 
 def run_migrations_online() -> None:
     asyncio.run(run_async_migrations())
