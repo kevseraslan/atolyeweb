@@ -90,7 +90,6 @@ export const Footer: React.FC = () => {
           <div className="flex flex-col gap-2 text-sm text-[#504441]">
             <p>İstanbul, Türkiye</p>
             <p className="mt-1 font-medium">Özel Üretim Mobilya Atölyesi</p>
-            <p className="text-xs text-[#504441]/80 mt-2">KVKK İletişim: info@artisanwoodworks.com</p>
           </div>
         </div>
       </div>

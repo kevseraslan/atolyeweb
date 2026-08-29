@@ -11,7 +11,7 @@ interface ProductCardProps {
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const fallbackImage =
-    "https://images.unsplash.com/photo-1615066390971-03e4e1c36ddf?auto=format&fit=crop&w=800&q=80";
+    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='600' viewBox='0 0 800 600'><rect width='100%' height='100%' fill='%23f0eded'/><text x='50%' y='50%' font-family='serif' font-size='24' fill='%23504441' text-anchor='middle' dy='.3em'>Artisan Woodworks</text></svg>";
 
   const imageUrl = product.primary_image?.secure_url || fallbackImage;
 

@@ -1,54 +1,78 @@
-# Technical Privacy & KVKK Compliance Architecture Guide
+# Technical Privacy & KVKK Architecture Guide
 
-## 1. Personal Data Inventory & Categorization
+## SECTION A: IMPLEMENTED TECHNICALLY
+
+### 1. Personal Data Inventory & System Boundaries
 - **Direct Identifiers (Orders):** `customer_name` (Ad Soyad), `phone` (Telefon Numarası), `email` (Opsiyonel E-posta).
-- **Location Data (Orders):** `city` (Şehir bilgisi - Lojistik/teslimat değerlendirmesi amacıyla).
-- **Order & Product tercihleri:** `requested_width`, `requested_height`, `requested_depth`, `quantity`, `custom_note`, `product_id`, `color_id`, `material_id`.
+- **Location Data (Orders):** `city` (Şehir bilgisi - Lojistik ve teslimat fizibilitesi amacıyla).
+- **Order & Product Preferences:** `requested_width`, `requested_height`, `requested_depth`, `quantity`, `custom_note`, `product_id`, `color_id`, `material_id`.
 - **Order Tracking:** `tracking_number` (Sipariş doğrulama anahtarı), `phone`.
 - **Administrative Account Data:** `admins.email`, `admins.full_name`, `admins.password_hash`, `admins.last_login_at`.
 - **NON-EXISTENT DATA (Excluded by Design):** Customer accounts/passwords (Üyeliksiz sistem), Customer Image Uploads, Credit Card/Payment Data (Sitede online ödeme yoktur), T.C. Kimlik No, Birthdate, Full Street Address.
 
 ---
 
-## 2. Processing Purposes & Legal Grounds (KVKK Md. 5 Matrix)
-- **`customer_name`:** Talep sahibini tanımlama ve iletişim kurulması (KVKK md. 5/2-c Sözleşmenin kurulması/ifası).
-- **`phone`:** Özel sipariş teklif bilgilendirmesi ve sipariş doğrulama (KVKK md. 5/2-c).
-- **`email` (Opsiyonel):** Müşteri tercih etmişse ek iletişim ve teklif iletimi (KVKK md. 5/2-c).
-- **`city`:** Üretim tesisi teslimat ve lojistik fizibilitesi (KVKK md. 5/2-f Meşru menfaat).
-- **`custom_note` & Ölçüler:** Özel üretim mobilya tasarımı, ahşap/cila seçimi ve teklif hesaplaması (KVKK md. 5/2-c).
+### 2. Form & UI Privacy Disclosures (Aydınlatma ≠ Rıza)
+- **Special Order Form (`/ozel-siparis`):** Form submit butonu altında bilgilendirme bağlantısı yer alır: *"Talebinizi göndermeden önce kişisel verilerinizin işlenmesine ilişkin KVKK Aydınlatma Metni'ni inceleyebilirsiniz."* (Zorunlu rıza kutusu veya kabul etme zorunluluğu empoze edilmez).
+- **Order Tracking Form (`/siparis-takip`):** *"Telefon numaranız yalnızca talep doğrulaması amacıyla kullanılır."*
+- **Public Cookie Behavior:** Anonim ziyaretçilere kamusal gezinmede (`/`, `/urunler`, `/gizlilik`, `/kvkk`) hiçbir yönetici veya takip çerezi set edilmez.
 
 ---
 
-## 3. Third-Party Service Flow & Data Boundaries
+### 3. Detailed Third-Party Service Flow & Data Boundaries
 - **Cloudinary CDN:** Yalnızca yöneticiler tarafından yüklenen **kamusal ürün katalog fotoğrafları** ve ahşap doku görsellerini sunar. Müşteri kişisel verileri veya sipariş detayları Cloudinary platformuna **gönderilmez**.
-- **Unsplash:** Demo/placeholder görseller için istemci tarafı doğrudan görsel çekimi (Kişisel veri iletilmez).
-- **Google Fonts / Analytics / Marketing Pixels:** **KULLANILMAMAKTADIR**. İstemciye reklam, analiz veya harici font izleme script'leri yerleştirilmez.
+- **Contabo (Gelecek VPS Host):** Gelecekte uygulama ve veritabanı sunucusu olarak kullanılacaktır.
+- **Nginx:** Self-hosted altyapı ters sunucusu.
+- **Let's Encrypt:** TLS sertifika altyapısı.
+- **GitHub:** Yalnızca kaynak kod deposu. Üretim müşteri veritabanı veya kişisel veriler GitHub deposuna **kesinlikle taahhüt edilmez/yüklenmez**.
+- **Google Analytics / Facebook Pixel / Marketing Scripts:** **KULLANILMAMAKTADIR**.
 
 ---
 
-## 4. Cookie Classification
+### 4. Cookie Inventory
 - **Strictly Necessary Cookies Only:**
-  - `admin_session` / `__Host-admin_session`: Yalnızca yetkili yönetici paneli oturumu için kullanılır (Ömrü: 4 Saat). Kamusal ziyaretçilere atanmaz.
-- **Analytics / Marketing Cookies:** **YOKTUR**. Bu nedenle kullanıcıyı rahatsız eden "Tümünü Kabul Et" rıza banner'ı yerleştirilmemiş; bilgilendirme `/gizlilik` sayfasında açıkça yapılmıştır.
+  - `admin_session` (Development) / `__Host-admin_session` (Production): Yalnızca yetkili yönetici paneli oturumunu korur. (Süre: 4 Saat, Yalnızca admin kullanıcılarına atanır).
+- **Analytics & Marketing Cookies:** **YOKTUR**. Bu nedenle kullanıcıyı rahatsız eden rıza banner'ı eklenmemiş; teknik açıklama `/gizlilik` sayfasında yapılmıştır.
 
 ---
 
-## 5. Retention Matrix & Data Lifecycle
-*(Final retention periods require business and legal confirmation prior to production)*
-- **İptal Edilen / Onaylanmayan Teklif Talepleri:** 1 Yıl sonra otomatik arşivleme/anonimleştirme önerilir.
-- **Tamamlanan / Teslim Edilen Siparişler:** Ticaret ve Vergi Usul Kanunu uyarınca 10 yıl yasal zamanaşımı süresince saklanır.
-- **Yönetici Giriş Logları:** 2 Yıl teknik denetim amacıyla saklanır.
+### 5. Data Subject Request (DSR) Identity Verification Approach
+- Sistemde üyelik hesabı bulunmadığı için sipariş verilerine ilişkin bilgi alma/silme taleplerinde yalnızca `phone + tracking_number` kombinasyonu otomatik kimlik doğrulaması için yeterli sayılmaz.
+- Başvurularda risk tabanlı manuel kimlik doğrulaması uygulanır (Talep kaydıyla eşleşen iletişim bilgileri teyit edilir, üçüncü şahısların verilerine erişimi kesinlikle engellenir).
 
 ---
 
-## 6. Data Subject Requests (İlgili Kişi Hakları Süreci)
-- Müşteri hesabı bulunmadığından KVKK md. 11 kapsamındaki bilgi alma ve silme talepleri **`info@artisanwoodworks.com`** e-posta adresi üzerinden yazılı doğrulamayla kabul edilir.
-- Telefon numarası ve sipariş takip numarası doğrulaması yapılmadan üçüncü şahıslara bilgi verilmez.
+## SECTION B: LEGAL / BUSINESS CONFIRMATION REQUIRED PRIOR TO PRODUCTION
+
+### 1. Veri Sorumlusunun Resmi Kimliği & İletişim Bilgileri
+- [ ] Gerçek ticari unvanın (veya gerçek kişi işletmesi ise resmi veri sorumlusu adının) `/kvkk` metnine işlenmesi.
+- [ ] Veri sorumlusu resmi tebligat adresi ve KVKK başvuru e-posta adresinin tanımlanması (Sahte e-posta kullanılmamıştır).
+- [ ] İşletmenin hukuki yapısına göre MERSİS/Vergi numarasının beyan gereksiniminin hukuk danışmanı ile netleştirilmesi.
 
 ---
 
-## 7. Production Legal Checklist (Deploy Blockers)
-- [ ] Gerçek işletme unvanı ve MERSİS/Vergi numarasının `/kvkk` sayfasına işlenmesi
-- [ ] Veri sorumlusu açık tebligat adresi ve KVKK başvuru e-posta adresinin doğrulanması
-- [ ] Production sunucusu (Contabo/VPS) veri merkezi lokasyonu ve KVKK yurt dışı aktarım kontrolleri
-- [ ] İşletmenin mali müşaviri/hukuk danışmanı ile nihai veri saklama sürelerinin onaylanması
+### 2. Draft Legal Grounds Mapping (KVKK Md. 5 Review)
+*(Hukuk danışmanı tarafından üretim öncesi nihai onay verilmelidir)*
+- **Sipariş / Teklif Talebinin Alınması:** KVKK md. 5/2-c (Sözleşmenin kurulması/ifasıyla doğrudan ilgili olması).
+- **Sipariş Takibi & Doğrulama:** KVKK md. 5/2-c (Sözleşmenin ifası).
+- **Teknik Güvenlik & Rate Limiting (IP Loglama):** KVKK md. 5/2-f (Meşru menfaat) ve md. 5/2-ç (Hukuki yükümlülük).
+
+---
+
+### 3. Data Retention Matrix
+*(Final retention periods require business and legal confirmation based on tax/accounting/contract law)*
+
+| Veri Kategorisi | Saklama Süresi (Retention) | Tetikleyici (Trigger) | İmha Aksiyonu (Action) |
+| :--- | :--- | :--- | :--- |
+| **Sonuçsuz Kalan Teklif Talepleri** | TBD — Hukuk/İşletme Teyidi Gerekli | Talebin sonuçsuz kalması + İşleme amacının sona ermesi | Silme, Yok Etme veya Anonimleştirme |
+| **Tamamlanan / Teslim Edilen Siparişler** | TBD — İlgili Vergi/Muhasebe/Ticaret Mevzuatı | Yasal saklama yükümlülüğü süresinin dolması | Silme, Yok Etme veya Anonimleştirme |
+| **Yönetici Oturum Logları** | TBD — Teknik Denetim İhtiyacı | Teknik denetim amacının tamamlanması | Güvenli Silme |
+
+**Temel İmha İlkesi:** Kişisel verilerin işlenmesini gerektiren sebepler ortadan kalktığında ve başka bir yasal saklama yükümlülüğü bulunmadığında veriler silinir, yok edilir veya anonim hale getirilir. Silme ve anonimleştirme işlemleri operasyonel olarak kayıt altına alınacaktır.
+
+---
+
+### 4. Yurt Dışına Aktarım Checklist (KVKK Md. 9 - 2024 Reformu)
+- [ ] Production sunucusunun (Contabo VPS) veri merkezi ülkesinin tespiti.
+- [ ] Cloudinary görsel sunucusunun veri işleme lokasyonlarının incelenmesi.
+- [ ] Yurt dışına veri aktarımı oluşuyorsa KVKK md. 9 uyarınca uygun aktarım mekanizmasının (Standart Sözleşme vb.) tespiti ve Kurum bildirimi değerlendirmesi.

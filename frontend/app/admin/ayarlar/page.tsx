@@ -118,7 +118,7 @@ export default function AdminSettingsPage() {
             </label>
             <input
               type="email"
-              placeholder="info@artisanwoodworks.com"
+              placeholder="iletisim@atolyeniz.com"
               value={settingsData.email || ""}
               onChange={(e) => setSettingsData({ ...settingsData, email: e.target.value })}
               className="w-full p-2.5 bg-white border border-[#d4c3be] rounded text-sm"

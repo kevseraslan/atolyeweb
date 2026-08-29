@@ -14,7 +14,7 @@ export default function HomePage() {
             className="bg-cover bg-center bg-no-repeat w-full h-full absolute inset-0"
             style={{
               backgroundImage:
-                "url('https://images.unsplash.com/photo-1538688525198-9b88f6f53126?auto=format&fit=crop&w=1920&q=80')",
+                "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1920' height='1080' viewBox='0 0 1920 1080'><rect width='100%' height='100%' fill='%23f0eded'/><text x='50%' y='50%' font-family='serif' font-size='48' fill='%23442a22' text-anchor='middle' dy='.3em'>Artisan Woodworks Hero</text></svg>\")",
             }}
           />
           <div className="absolute inset-0 bg-gradient-to-r from-[#fcf9f8]/95 via-[#fcf9f8]/80 to-[#fcf9f8]/40 md:w-3/4" />
@@ -93,7 +93,7 @@ export default function HomePage() {
                 <img
                   className="object-cover w-full h-full"
                   alt="Zanaatkar ahşap çalışması"
-                  src="https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=1000&q=80"
+                  src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1000' height='750' viewBox='0 0 1000 750'><rect width='100%' height='100%' fill='%23e5e2e1'/><text x='50%' y='50%' font-family='serif' font-size='28' fill='%23442a22' text-anchor='middle' dy='.3em'>Artisan Woodworks Atölyesi</text></svg>"
                 />
               </div>
             </div>

@@ -29,9 +29,9 @@ export default function KvkkPage() {
               6698 sayılı Kişisel Verilerin Korunması Kanunu (&quot;KVKK&quot;) uyarınca kişisel verileriniz; veri sorumlusu sıfatıyla **Artisan Woodworks** (&quot;Atölye&quot; / &quot;İşletme&quot;) tarafından aşağıda açıklanan kapsamda işlenmektedir.
             </p>
             <div className="mt-3 p-4 bg-[#fcf9f8] rounded border border-[#e5e2e1] text-xs text-[#504441]">
-              <p><strong>Veri Sorumlusu Unvanı:</strong> Artisan Woodworks Masif Ahşap Atölyesi</p>
-              <p className="mt-1"><strong>İletişim E-posta:</strong> info@artisanwoodworks.com</p>
+              <p><strong>Veri Sorumlusu Unvanı:</strong> Artisan Woodworks Masif Ahşap Atölyesi (Production öncesi resmi unvan doğrulanacaktır)</p>
               <p className="mt-1"><strong>İletişim Adresi:</strong> İstanbul, Türkiye</p>
+              <p className="mt-1 text-amber-800">* Veri sorumlusu açık adresi ve resmi iletişim e-postası işletme tarafından yayına alma öncesi tanımlanacaktır.</p>
             </div>
           </section>
 
@@ -72,7 +72,7 @@ export default function KvkkPage() {
               4. Kişisel Verilerin İşlenme Hukuki Sebepleri
             </h2>
             <p className="text-[#504441]">
-              Kişisel verileriniz, KVKK&apos;nın 5. maddesinin 2. fıkrasında yer alan şu hukuki sebeplere dayanılarak işlenmektedir:
+              Kişisel verileriniz, KVKK&apos;nın 5. maddesinin 2. fıkrasında yer alan şu hukuki sebeplere dayanılarak işlenmektedir (Hukuki sebepler production öncesi hukuk danışmanı teyidinden geçecektir):
             </p>
             <ul className="list-disc pl-5 space-y-1 text-[#504441] mt-2">
               <li><strong>c)</strong> Bir sözleşmenin kurulması veya ifasıyla doğrudan doğruya ilgili olması kaydıyla, sözleşmenin taraflarına ait kişisel verilerin işlenmesinin gerekli olması (Özel üretim teklif ve sipariş süreci)</li>
@@ -97,7 +97,7 @@ export default function KvkkPage() {
               6. Saklama Süreleri
             </h2>
             <p className="text-[#504441]">
-              Kişisel verileriniz, işlenme amacının gerektirdiği süre boyunca ve ilgili yasal mevzuatta öngörülen zamanaşımı süreleri dahilinde saklanır. Sürenin sona ermesiyle verileriniz güvenli şekilde silinir, yok edilir veya anonim hale getirilir.
+              Kişisel verileriniz, işlenme amacının gerektirdiği süre boyunca saklanır. İlgili yasal saklama süreleri sona erdiğinde ve verilerin işlenmesini gerektiren hukuki sebepler ortadan kalktığında kişisel verileriniz güvenli şekilde silinir, yok edilir veya anonim hale getirilir.
             </p>
           </section>
 
@@ -124,7 +124,7 @@ export default function KvkkPage() {
               8. İletişim ve Başvuru
             </h2>
             <p className="text-[#504441]">
-              Haklarınıza ilişkin taleplerinizi e-posta yoluyla <strong>info@artisanwoodworks.com</strong> adresine iletebilirsiniz. Başvurularınız en geç 30 gün içinde yanıtlanacaktır.
+              Haklarınıza ilişkin taleplerinizi işletmemize yazılı olarak iletebilirsiniz. Başvuru kanalları ve resmi iletişim bilgileri işletme tarafından yayına alma öncesi ilan edilecektir.
             </p>
           </section>
         </div>

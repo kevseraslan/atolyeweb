@@ -101,7 +101,7 @@ export default function GizlilikPage() {
               5. İletişim
             </h2>
             <p className="text-[#504441]">
-              Gizlilik politikamız veya çerez kullanımı ile ilgili sorularınızı <strong>info@artisanwoodworks.com</strong> adresi üzerinden atölyemize iletebilirsiniz.
+              Gizlilik politikamız veya çerez kullanımı ile ilgili sorularınızı atölyemizin iletişim kanalları üzerinden iletebilirsiniz. Resmi iletişim bilgileri yayına alma öncesinde işletme tarafından ilan edilecektir.
             </p>
           </section>
         </div>

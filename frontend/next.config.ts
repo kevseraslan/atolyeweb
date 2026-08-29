@@ -8,11 +8,6 @@ const nextConfig: NextConfig = {
         hostname: "res.cloudinary.com",
         pathname: "/**",
       },
-      {
-        protocol: "https",
-        hostname: "images.unsplash.com",
-        pathname: "/**",
-      },
     ],
   },
   async headers() {
@@ -40,7 +35,7 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value:
               "default-src 'self'; " +
-              "img-src 'self' data: https://res.cloudinary.com https://images.unsplash.com; " +
+              "img-src 'self' data: https://res.cloudinary.com; " +
               "script-src 'self' 'unsafe-inline'; " +
               "style-src 'self' 'unsafe-inline'; " +
               "font-src 'self'; " +

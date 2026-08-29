@@ -1,6 +1,5 @@
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.admin import Admin
 from app.services.admin_auth_service import COOKIE_NAME
 
 @pytest.mark.anyio
@@ -47,3 +46,11 @@ async def test_order_tracking_data_minimization(async_client, db_session: AsyncS
     assert "quoted_price" not in data
     assert "approved_price" not in data
     assert "notes" not in data
+
+@pytest.mark.anyio
+async def test_csp_header_does_not_contain_unsplash(async_client):
+    res = await async_client.get("/api/v1/health")
+    assert res.status_code == 200
+    csp = res.headers.get("Content-Security-Policy", "")
+    assert "images.unsplash.com" not in csp
+    assert "img-src 'self' data: https://res.cloudinary.com" in csp

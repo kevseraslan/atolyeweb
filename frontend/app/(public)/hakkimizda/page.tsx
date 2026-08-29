@@ -27,7 +27,7 @@ export default function AboutPage() {
             <img
               className="w-full h-full object-cover"
               alt="Masif ahşap zanaatkar çalışması"
-              src="https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=1000&q=80"
+              src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1000' height='750' viewBox='0 0 1000 750'><rect width='100%' height='100%' fill='%23e5e2e1'/><text x='50%' y='50%' font-family='serif' font-size='28' fill='%23442a22' text-anchor='middle' dy='.3em'>Artisan Woodworks Atölyesi</text></svg>"
             />
           </div>
         </div>

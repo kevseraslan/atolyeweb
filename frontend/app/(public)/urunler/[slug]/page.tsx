@@ -20,7 +20,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
   }
 
   const fallbackImage =
-    "https://images.unsplash.com/photo-1615066390971-03e4e1c36ddf?auto=format&fit=crop&w=1200&q=80";
+    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='900' viewBox='0 0 1200 900'><rect width='100%' height='100%' fill='%23f0eded'/><text x='50%' y='50%' font-family='serif' font-size='32' fill='%23442a22' text-anchor='middle' dy='.3em'>Artisan Woodworks</text></svg>";
 
   const primaryImg = product.images.find((img) => img.is_primary) || product.images[0];
   const mainImageUrl = primaryImg?.secure_url || fallbackImage;
