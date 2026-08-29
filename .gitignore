@@ -1,9 +1,17 @@
 # Node / Next.js
 node_modules/
+frontend/node_modules/
 .next/
+frontend/.next/
 out/
 build/
 .vercel/
+
+# Testing & Reports
+frontend/playwright-report/
+frontend/test-results/
+playwright-report/
+test-results/
 
 # Python
 __pycache__/
@@ -11,7 +19,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 .pytest_cache/
+backend/.pytest_cache/
 .venv/
+backend/.venv/
 venv/
 *.egg-info/
 dist/
@@ -22,6 +32,13 @@ dist/
 !.env.example
 !frontend/.env.example
 !backend/.env.example
+*.pem
+*.key
+
+# Database Backups & Dumps
+backups/
+*.sql
+*.dump
 
 # IDE / Operating System
 .vscode/
