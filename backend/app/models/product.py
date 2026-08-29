@@ -36,8 +36,8 @@ class Product(Base):
     default_depth: Mapped[Optional[Decimal]] = mapped_column(Numeric(10, 2), nullable=True)
 
     is_customizable: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    is_featured: Mapped[bool] = mapped_column(Boolean, default=False, index=True, nullable=False)
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True, nullable=False)
+    is_featured: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

@@ -1,9 +1,11 @@
 import { ApiError } from "./errors";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+  process.env.INTERNAL_API_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:8000/api/v1";
 
-export async function fetchClientApi<T>(
+export async function fetchServerApi<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
@@ -20,6 +22,7 @@ export async function fetchClientApi<T>(
     const response = await fetch(url, {
       ...options,
       headers,
+      next: options.next || { revalidate: 60 },
     });
 
     if (!response.ok) {
@@ -33,7 +36,7 @@ export async function fetchClientApi<T>(
           errorCode = errorData.error.code || errorCode;
         }
       } catch {
-        // Fallback to default message
+        // Fallback
       }
 
       throw new ApiError(errorMessage, errorCode, response.status);
@@ -45,8 +48,8 @@ export async function fetchClientApi<T>(
       throw error;
     }
     throw new ApiError(
-      error instanceof Error ? error.message : "Network error",
-      "NETWORK_ERROR",
+      error instanceof Error ? error.message : "Server fetch error",
+      "SERVER_FETCH_ERROR",
       500
     );
   }

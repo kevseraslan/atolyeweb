@@ -41,8 +41,8 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
       <PageContainer className="pb-24">
         {productsData.items.length === 0 ? (
           <div className="text-center py-16 bg-[#fcf9f8] rounded border border-[#e5e2e1]">
-            <p className="text-[#504441] text-base">
-              Bu kategoride henüz yayınlanmış ürün bulunmamaktadır.
+            <p className="text-[#504441] text-base font-medium">
+              Henüz ürün eklenmemiş.
             </p>
           </div>
         ) : (

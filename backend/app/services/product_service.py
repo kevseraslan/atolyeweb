@@ -1,5 +1,5 @@
 from math import ceil
-from typing import Optional, List, Tuple
+from typing import Optional, List
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -22,7 +22,7 @@ class ProductService:
         page = max(1, page)
         page_size = min(max(1, page_size), 100)
 
-        # Base query joining Category to check category.is_active = True
+        # Base query enforcing both Product.is_active = True AND Category.is_active = True at SQL level
         base_stmt = (
             select(Product)
             .join(Category, Product.category_id == Category.id)
@@ -59,8 +59,11 @@ class ProductService:
 
         items: List[ProductListItem] = []
         for p in products:
-            # Find primary image or fallback to first image sorted by sort_order
-            sorted_images = sorted(p.images, key=lambda img: (not img.is_primary, img.sort_order))
+            # Deterministic image ordering: (not is_primary, sort_order, id)
+            sorted_images = sorted(
+                p.images,
+                key=lambda img: (not img.is_primary, img.sort_order, img.id)
+            )
             primary_img = sorted_images[0] if sorted_images else None
 
             primary_img_read = (
@@ -113,7 +116,11 @@ class ProductService:
         if not product:
             raise NotFoundException(message=f"Product with slug '{slug}' not found")
 
-        sorted_images = sorted(product.images, key=lambda img: (not img.is_primary, img.sort_order))
+        # Deterministic image ordering: (not is_primary, sort_order, id)
+        sorted_images = sorted(
+            product.images,
+            key=lambda img: (not img.is_primary, img.sort_order, img.id)
+        )
 
         return ProductDetail(
             id=product.id,

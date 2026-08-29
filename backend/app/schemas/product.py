@@ -22,7 +22,6 @@ class MaterialRead(BaseModel):
 
 class ProductImageRead(BaseModel):
     id: int
-    cloudinary_public_id: str
     secure_url: str
     alt_text: Optional[str] = None
     sort_order: int

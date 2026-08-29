@@ -1,4 +1,4 @@
-import { fetchApi } from "@/lib/api/client";
+import { fetchServerApi } from "@/lib/api/server";
 import {
   Category,
   ProductListItem,
@@ -8,7 +8,7 @@ import {
 
 export async function getCategories(): Promise<Category[]> {
   try {
-    return await fetchApi<Category[]>("/categories");
+    return await fetchServerApi<Category[]>("/categories");
   } catch (error) {
     console.error("Failed to fetch categories:", error);
     return [];
@@ -33,7 +33,7 @@ export async function getProducts(params?: {
   }`;
 
   try {
-    return await fetchApi<PaginatedResponse<ProductListItem>>(endpoint);
+    return await fetchServerApi<PaginatedResponse<ProductListItem>>(endpoint);
   } catch (error) {
     console.error("Failed to fetch products:", error);
     return {
@@ -50,7 +50,7 @@ export async function getProductBySlug(
   slug: string
 ): Promise<ProductDetail | null> {
   try {
-    return await fetchApi<ProductDetail>(`/products/${slug}`);
+    return await fetchServerApi<ProductDetail>(`/products/${slug}`);
   } catch (error) {
     console.error(`Failed to fetch product with slug '${slug}':`, error);
     return null;
