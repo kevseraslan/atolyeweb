@@ -17,7 +17,7 @@ const playfair = Playfair_Display({
 export const metadata: Metadata = {
   title: "Artisan Woodworks - Evinize Özel, Ustalıkla Üretilen Mobilyalar",
   description:
-    "Hayalinizdeki mobilyayı ölçülerinize, tarzınıza ve renk tercihinize göre sizin için üretiyoruz. Masif ahşap ve özel üretim mobilya atölyesi.",
+    "Masif ahşap ve özel üretim mobilya atölyesi. Özel ölçü ve zanaatkar üretimi.",
 };
 
 export default function RootLayout({
@@ -30,12 +30,6 @@ export default function RootLayout({
       lang="tr"
       className={`${inter.variable} ${playfair.variable} scroll-smooth h-full antialiased`}
     >
-      <head>
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-        />
-      </head>
       <body className="min-h-full flex flex-col bg-[#fcf9f8] text-[#1b1c1c]">
         {children}
       </body>

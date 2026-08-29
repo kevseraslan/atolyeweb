@@ -1,11 +1,13 @@
+/* eslint-disable @next/next/no-img-element */
 import React from "react";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { Badge } from "@/components/ui/Badge";
 
 export default function AboutPage() {
   return (
-    <main className="flex-grow pt-8 pb-24 px-5 md:px-16 max-w-[1280px] mx-auto w-full">
+    <PageContainer className="py-16">
       <section className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
-        <div className="md:col-span-5 order-2 md:order-1 flex flex-col gap-6">
+        <div className="md:col-span-6 flex flex-col gap-6">
           <Badge variant="tertiary" className="w-fit">
             Hakkımızda
           </Badge>
@@ -18,30 +20,10 @@ export default function AboutPage() {
             parçasının kendine has damar yapısını ve karakterini koruyarak,
             zamansız mobilyalar üretiyoruz.
           </p>
-          <p className="text-sm text-[#504441] leading-relaxed">
-            Ustalığımız, geleneksel el işçiliği tekniklerini günümüzün hassas
-            üretim teknolojileriyle birleştirmekte yatıyor. Ceviz, meşe ve
-            dişbudak gibi özenle seçilmiş sert ağaçlar, atölyemizde sadece bir
-            mobilya değil, nesilden nesile aktarılacak birer mirasa dönüşüyor.
-          </p>
-          <div className="flex flex-wrap gap-4 pt-2">
-            <span className="inline-flex items-center bg-[#f0eded] px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-widest text-[#504441]">
-              <span className="material-symbols-outlined mr-2 text-[#442a22] text-sm">
-                verified
-              </span>{" "}
-              15 Yıllık Ustalık
-            </span>
-            <span className="inline-flex items-center bg-[#f0eded] px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-widest text-[#504441]">
-              <span className="material-symbols-outlined mr-2 text-[#442a22] text-sm">
-                forest
-              </span>{" "}
-              Sürdürülebilir Ahşap
-            </span>
-          </div>
         </div>
 
-        <div className="md:col-span-6 md:col-start-7 order-1 md:order-2 relative">
-          <div className="aspect-[4/5] rounded-lg overflow-hidden shadow-ambient bg-[#e5e2e1] hover-lift">
+        <div className="md:col-span-6">
+          <div className="aspect-[4/3] rounded-lg overflow-hidden shadow-sm bg-[#e5e2e1]">
             <img
               className="w-full h-full object-cover"
               alt="Masif ahşap zanaatkar çalışması"
@@ -50,6 +32,6 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
-    </main>
+    </PageContainer>
   );
 }

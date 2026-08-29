@@ -49,7 +49,7 @@ export const Footer: React.FC = () => {
           </nav>
         </div>
 
-        {/* Kurumsal / Yasal */}
+        {/* Kurumsal */}
         <div className="flex flex-col gap-4">
           <h4 className="text-xs font-bold text-[#442a22] uppercase tracking-widest">
             Kurumsal
@@ -67,24 +67,17 @@ export const Footer: React.FC = () => {
             >
               İletişim
             </Link>
-            <span className="text-sm text-[#504441]">Kullanım Koşulları</span>
-            <span className="text-sm text-[#504441]">Gizlilik Politikası</span>
           </nav>
         </div>
 
-        {/* İletişim */}
+        {/* İletişim Bilgileri */}
         <div className="flex flex-col gap-4">
           <h4 className="text-xs font-bold text-[#442a22] uppercase tracking-widest">
-            İletişim
+            Atölye İletişim
           </h4>
           <div className="flex flex-col gap-2 text-sm text-[#504441]">
-            <p>
-              Atölye Sokak No:123
-              <br />
-              Ahşap Mahallesi, İstanbul
-            </p>
-            <p className="mt-2 font-medium">info@artisanwoodworks.com</p>
-            <p className="font-medium">+90 555 123 45 67</p>
+            <p>İstanbul, Türkiye</p>
+            <p className="mt-1 font-medium">Özel Üretim Mobilya Atölyesi</p>
           </div>
         </div>
       </div>
