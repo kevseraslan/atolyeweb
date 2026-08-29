@@ -76,11 +76,6 @@ def downgrade() -> None:
         op.drop_constraint('fk_order_status_history_changed_by_admin', 'order_status_history', type_='foreignkey')
         op.drop_index(op.f('ix_order_status_history_changed_by_admin_id'), table_name='order_status_history')
 
-    op.drop_index(op.f('ix_order_admin_notes_order_id'), table_name='order_admin_notes')
-    op.drop_index(op.f('ix_order_admin_notes_admin_id'), table_name='order_admin_notes')
-    op.drop_table('order_admin_notes')
-
-    op.drop_table('site_settings')
-
-    op.drop_index(op.f('ix_admins_email'), table_name='admins')
-    op.drop_table('admins')
+    op.drop_table('order_admin_notes', if_exists=True)
+    op.drop_table('site_settings', if_exists=True)
+    op.drop_table('admins', if_exists=True)
