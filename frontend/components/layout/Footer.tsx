@@ -49,10 +49,10 @@ export const Footer: React.FC = () => {
           </nav>
         </div>
 
-        {/* Kurumsal */}
+        {/* Kurumsal & Yasal */}
         <div className="flex flex-col gap-4">
           <h4 className="text-xs font-bold text-[#442a22] uppercase tracking-widest">
-            Kurumsal
+            Kurumsal & Yasal
           </h4>
           <nav className="flex flex-col gap-3">
             <Link
@@ -67,6 +67,18 @@ export const Footer: React.FC = () => {
             >
               İletişim
             </Link>
+            <Link
+              href="/kvkk"
+              className="text-sm text-[#504441] hover:text-[#442a22] transition-colors"
+            >
+              KVKK Aydınlatma Metni
+            </Link>
+            <Link
+              href="/gizlilik"
+              className="text-sm text-[#504441] hover:text-[#442a22] transition-colors"
+            >
+              Gizlilik ve Çerez Politikası
+            </Link>
           </nav>
         </div>
 
@@ -78,6 +90,7 @@ export const Footer: React.FC = () => {
           <div className="flex flex-col gap-2 text-sm text-[#504441]">
             <p>İstanbul, Türkiye</p>
             <p className="mt-1 font-medium">Özel Üretim Mobilya Atölyesi</p>
+            <p className="text-xs text-[#504441]/80 mt-2">KVKK İletişim: info@artisanwoodworks.com</p>
           </div>
         </div>
       </div>
@@ -86,6 +99,14 @@ export const Footer: React.FC = () => {
         <p className="text-xs text-[#504441]">
           © 2026 Artisan Woodworks. Tüm hakları saklıdır.
         </p>
+        <div className="flex items-center gap-6 text-xs text-[#504441]">
+          <Link href="/kvkk" className="hover:text-[#442a22] transition-colors">
+            KVKK
+          </Link>
+          <Link href="/gizlilik" className="hover:text-[#442a22] transition-colors">
+            Gizlilik Politikası
+          </Link>
+        </div>
       </div>
     </footer>
   );

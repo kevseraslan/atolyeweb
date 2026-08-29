@@ -427,8 +427,12 @@ export default function SpecialOrderPage() {
             >
               {submitting ? "Sipariş Talebi Gönderiliyor..." : "Ücretsiz Teklif Talebini Gönder"}
             </Button>
-            <p className="text-xs text-center text-[#827470] mt-3">
-              Talebiniz hemen atölyemize ulaşır. Hiçbir şekilde online ödeme bilgisi istenmez.
+            <p className="text-xs text-center text-[#827470] mt-3 leading-relaxed">
+              Talebinizi ileterek kişisel verilerinizin işlenmesine ilişkin{" "}
+              <Link href="/kvkk" target="_blank" className="underline font-medium text-[#442a22]">
+                KVKK Aydınlatma Metni
+              </Link>
+              &apos;ni okuduğunuzu kabul edersiniz. Hiçbir şekilde online ödeme bilgisi istenmez.
             </p>
           </div>
         </form>

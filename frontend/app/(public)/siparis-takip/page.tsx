@@ -135,6 +135,9 @@ export default function OrderTrackingPage() {
                 </Button>
               )}
             </div>
+            <p className="text-xs text-center text-[#827470] mt-2">
+              Telefon numaranız yalnızca talep doğrulaması amacıyla kullanılır.
+            </p>
           </form>
         </div>
 

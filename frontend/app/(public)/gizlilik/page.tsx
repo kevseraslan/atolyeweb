@@ -1,0 +1,120 @@
+import React from "react";
+import Link from "next/link";
+import { PageContainer } from "@/components/layout/PageContainer";
+
+export const metadata = {
+  title: "Gizlilik ve Çerez Politikası | Artisan Woodworks",
+  description: "Artisan Woodworks gizlilik ve çerez kullanım politikası. Kişisel veri güvenliği ve teknik çerez açıklamaları.",
+};
+
+export default function GizlilikPage() {
+  return (
+    <PageContainer>
+      <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8 bg-white rounded-lg shadow-sm border border-[#e5e2e1]">
+        <h1 className="font-serif text-3xl md:text-4xl text-[#442a22] font-bold mb-6 border-b border-[#e5e2e1] pb-4">
+          Gizlilik ve Çerez Politikası
+        </h1>
+
+        <p className="text-sm text-[#504441] mb-8 italic">
+          Son Güncelleme Tarihi: 29 Ağustos 2026
+        </p>
+
+        <div className="space-y-8 text-[#1b1c1c] text-sm md:text-base leading-relaxed">
+          {/* Gizlilik Prensiplerimiz */}
+          <section>
+            <h2 className="font-serif text-xl text-[#442a22] font-semibold mb-3">
+              1. Gizlilik Prensiplerimiz
+            </h2>
+            <p className="text-[#504441]">
+              Artisan Woodworks olarak kişisel mahremiyetinize saygı duyuyoruz. Web sitemizi ziyaret eden müşterilerimizin ve ziyaretçilerimizin kişisel verilerinin güvenliğini sağlamak öncelikli ilkemizdir.
+            </p>
+          </section>
+
+          {/* Ne Toplamıyoruz? */}
+          <section className="p-4 bg-[#fcf9f8] rounded border border-[#e5e2e1]">
+            <h2 className="font-serif text-lg text-[#442a22] font-semibold mb-2">
+              Ne Toplamıyoruz? (Veri Minimizasyonu)
+            </h2>
+            <ul className="list-disc pl-5 space-y-1 text-xs md:text-sm text-[#504441]">
+              <li>Müşteri üyelik hesabı veya profil verisi **toplanmaz** (Üyeliksiz işlem yapılır).</li>
+              <li>Kredi kartı, banka hesabı veya ödeme bilgisi **toplanmaz** (Sitede online ödeme yoktur).</li>
+              <li>T.C. Kimlik No veya doğum tarihi gibi hassas kişisel veriler **istenmez**.</li>
+              <li>Ziyaretçi kişisel fotoğrafları **toplanmaz veya yüklenmez**.</li>
+              <li>Google Analytics, Facebook Pixel gibi üçüncü taraf reklam/takip script&apos;leri **kullanılmaz**.</li>
+            </ul>
+          </section>
+
+          {/* Çerez (Cookie) Kullanımı */}
+          <section>
+            <h2 className="font-serif text-xl text-[#442a22] font-semibold mb-3">
+              2. Çerez (Cookie) Kullanımı
+            </h2>
+            <p className="text-[#504441] mb-3">
+              Web sitemizde yalnızca sistemin güvenli ve doğru çalışması için zorunlu olan **Zorunlu Teknik Çerezler (Strictly Necessary Cookies)** kullanılmaktadır. Reklam veya pazarlama amaçlı çerez bulunmamaktadır.
+            </p>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse border border-[#e5e2e1] text-xs md:text-sm">
+                <thead>
+                  <tr className="bg-[#f0eded] text-[#442a22]">
+                    <th className="p-3 border border-[#e5e2e1]">Çerez Adı</th>
+                    <th className="p-3 border border-[#e5e2e1]">Türü</th>
+                    <th className="p-3 border border-[#e5e2e1]">Kullanım Amacı</th>
+                    <th className="p-3 border border-[#e5e2e1]">Süre</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="p-3 border border-[#e5e2e1] font-mono">admin_session / __Host-admin_session</td>
+                    <td className="p-3 border border-[#e5e2e1]">Zorunlu Güvenlik Çerezi</td>
+                    <td className="p-3 border border-[#e5e2e1]">Yalnızca yetkili yönetici paneli oturumunu korumak içindir. Kamusal ziyaretçilere atanmaz.</td>
+                    <td className="p-3 border border-[#e5e2e1]">4 Saat</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          {/* Üçüncü Taraf Hizmetler (Cloudinary) */}
+          <section>
+            <h2 className="font-serif text-xl text-[#442a22] font-semibold mb-3">
+              3. Üçüncü Taraf İçerik ve Görsel Sunucuları
+            </h2>
+            <p className="text-[#504441]">
+              Sitemizdeki ürün fotoğrafları ve ahşap doku görselleri güvenli görsel sunucusu (Cloudinary CDN) üzerinden sunulmaktadır. Cloudinary yalnızca kamusal ürün katalog görsellerini barındırır; müşteri kişisel verileri veya sipariş bilgileri Cloudinary platformuna gönderilmez.
+            </p>
+          </section>
+
+          {/* Veri Güvenliği */}
+          <section>
+            <h2 className="font-serif text-xl text-[#442a22] font-semibold mb-3">
+              4. Veri Güvenliği Önlemleri
+            </h2>
+            <p className="text-[#504441]">
+              Toplanan sipariş talepleri HTTPS/TLS şifrelemeli bağlantılar üzerinden iletilir. Sunucu tarafında yetkisiz erişime karşı CSRF token koruması, Argon2id şifreleme ve IP bazlı istek sınırlandırma (Rate Limiting) uygulanmaktadır.
+            </p>
+          </section>
+
+          {/* İletişim */}
+          <section className="pt-4 border-t border-[#e5e2e1]">
+            <h2 className="font-serif text-xl text-[#442a22] font-semibold mb-3">
+              5. İletişim
+            </h2>
+            <p className="text-[#504441]">
+              Gizlilik politikamız veya çerez kullanımı ile ilgili sorularınızı <strong>info@artisanwoodworks.com</strong> adresi üzerinden atölyemize iletebilirsiniz.
+            </p>
+          </section>
+        </div>
+
+        <div className="mt-10 pt-6 border-t border-[#e5e2e1] flex justify-between items-center text-xs text-[#504441]">
+          <Link href="/kvkk" className="hover:text-[#442a22] font-semibold underline">
+            ← KVKK Aydınlatma Metni
+          </Link>
+          <Link href="/" className="hover:text-[#442a22] font-semibold underline">
+            Ana Sayfaya Dön
+          </Link>
+        </div>
+      </div>
+    </PageContainer>
+  );
+}

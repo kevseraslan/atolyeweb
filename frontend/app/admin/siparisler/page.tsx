@@ -128,6 +128,9 @@ export default function AdminOrdersPage() {
         <div>
           <h1 className="font-serif text-3xl font-bold text-[#442a22]">Siparişler & Teklifler</h1>
           <p className="text-sm text-[#504441] mt-1">Müşteri taleplerini inceleyin, durum ve teklif fiyatlarını yönetin.</p>
+          <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 px-2 py-1 rounded mt-2 inline-block">
+            * Müşteri kişisel verileri yalnızca sipariş sürecinin yürütülmesi amacıyla kullanılmalıdır.
+          </p>
         </div>
 
         {/* Filter Dropdown */}
