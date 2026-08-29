@@ -69,7 +69,7 @@ class RateLimiter:
         with self._lock:
             self._history.clear()
 
-# Global Limiter Instances
-login_limiter = RateLimiter(max_requests=10, window_seconds=900)       # 10 failed logins / 15 mins
-tracking_limiter = RateLimiter(max_requests=30, window_seconds=60)     # 30 requests / min
-order_create_limiter = RateLimiter(max_requests=30, window_seconds=60) # 30 order creations / min
+# Global Limiter Instances (Central Source of Truth in settings)
+login_limiter = RateLimiter(max_requests=10, window_seconds=900)       # 10 failed logins / 15 mins (LOGIN_RATE_LIMIT)
+tracking_limiter = RateLimiter(max_requests=30, window_seconds=60)     # 30 requests / min (TRACKING_RATE_LIMIT)
+order_create_limiter = RateLimiter(max_requests=30, window_seconds=60) # 30 order creations / min (ORDER_CREATE_RATE_LIMIT)

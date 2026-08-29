@@ -4,6 +4,10 @@
 
 ### IMPLEMENTED NOW (Application Level)
 - **Authentication & Argon2id Hashing:** `argon2-cffi` (`PasswordHasher()`) for admin password verification with timing side-channel mitigation for invalid usernames.
+- **Central Rate Limiting Policies:**
+  - **Admin Login:** 10 failed login attempts per 15 minutes (`LOGIN_RATE_LIMIT = "10/15m"`).
+  - **Sipariş Sorgulama (Tracking):** 30 requests per minute (`TRACKING_RATE_LIMIT = "30/m"`).
+  - **Sipariş Oluşturma (Order Create):** 30 requests per minute (`ORDER_CREATE_RATE_LIMIT = "30/m"`).
 - **CSRF Defense:** Origin / Referer strict validation against `settings.FRONTEND_URL` + Signed Double-Submit HMAC CSRF Tokens (`X-CSRF-Token` header) on all state-changing admin endpoints.
 - **Session Revocation (`session_version`):** `admins.session_version` tracked in DB and JWT token `sv` claim. `logout` increments `session_version` in DB *before* deleting cookies, immediately invalidating stolen/copied tokens across all devices.
 - **Application Security Headers Baseline:**
