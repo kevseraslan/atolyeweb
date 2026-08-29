@@ -8,6 +8,8 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { getSiteUrl } from "@/lib/site-url";
+import { getSiteName } from "@/lib/site-name";
+import { serializeJsonLd } from "@/lib/json-ld";
 
 interface ProductDetailPageProps {
   params: Promise<{ slug: string }>;
@@ -16,11 +18,16 @@ interface ProductDetailPageProps {
 export async function generateMetadata({ params }: ProductDetailPageProps): Promise<Metadata> {
   const resolvedParams = await params;
   const product = await getProductBySlug(resolvedParams.slug);
+  const siteName = getSiteName();
 
-  if (!product) {
+  if (!product || !product.is_active || (product.category && product.category.is_active === false)) {
     return {
-      title: "Ürün Bulunamadı | Artisan Woodworks",
+      title: `Ürün Bulunamadı | ${siteName}`,
       description: "Aradığınız özel üretim mobilya modeli bulunamadı.",
+      robots: {
+        index: false,
+        follow: false,
+      },
     };
   }
 
@@ -28,24 +35,25 @@ export async function generateMetadata({ params }: ProductDetailPageProps): Prom
   const pageUrl = `${siteUrl}/urunler/${product.slug}`;
   const desc = product.short_description || product.description || `${product.name} özel üretim masif ahşap mobilya modeli.`;
   const primaryImg = product.images.find((img) => img.is_primary) || product.images[0];
+  const ogImageUrl = primaryImg?.secure_url || `${siteUrl}/opengraph-default.svg`;
 
   return {
-    title: `${product.name} | Artisan Woodworks`,
+    title: `${product.name} | ${siteName}`,
     description: desc,
     alternates: {
       canonical: pageUrl,
     },
     openGraph: {
-      title: `${product.name} | Artisan Woodworks`,
+      title: `${product.name} | ${siteName}`,
       description: desc,
       url: pageUrl,
-      images: primaryImg?.secure_url ? [{ url: primaryImg.secure_url, alt: primaryImg.alt_text || product.name }] : [],
+      images: [{ url: ogImageUrl, alt: primaryImg?.alt_text || product.name }],
     },
     twitter: {
       card: "summary_large_image",
-      title: `${product.name} | Artisan Woodworks`,
+      title: `${product.name} | ${siteName}`,
       description: desc,
-      images: primaryImg?.secure_url ? [primaryImg.secure_url] : [],
+      images: [ogImageUrl],
     },
   };
 }
@@ -54,18 +62,18 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
   const resolvedParams = await params;
   const product = await getProductBySlug(resolvedParams.slug);
 
-  if (!product) {
+  if (!product || !product.is_active || (product.category && product.category.is_active === false)) {
     notFound();
   }
 
   const siteUrl = getSiteUrl();
   const pageUrl = `${siteUrl}/urunler/${product.slug}`;
-  const fallbackImage =
-    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='900' viewBox='0 0 1200 900'><rect width='100%' height='100%' fill='%23f0eded'/><text x='50%' y='50%' font-family='serif' font-size='32' fill='%23442a22' text-anchor='middle' dy='.3em'>Artisan Woodworks</text></svg>";
+  const fallbackImage = `${siteUrl}/opengraph-default.svg`;
 
   const primaryImg = product.images.find((img) => img.is_primary) || product.images[0];
   const mainImageUrl = primaryImg?.secure_url || fallbackImage;
 
+  // Strict Product JSON-LD without fake prices, offers, stock or ratings
   const productJsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -73,9 +81,10 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     description: product.short_description || product.description || "Özel üretim masif ahşap mobilya.",
     image: primaryImg?.secure_url ? [primaryImg.secure_url] : [],
     url: pageUrl,
-    category: product.category.name,
+    category: product.category?.name || "Mobilya",
   };
 
+  // Breadcrumb List JSON-LD
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -103,14 +112,14 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
 
   return (
     <main className="flex-grow pt-8 pb-24">
-      {/* Structured Data Scripts */}
+      {/* Injection-safe Structured Data Scripts */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(productJsonLd) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
       />
 
       <PageContainer>
@@ -165,7 +174,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
           <div className="w-full lg:w-1/2 flex flex-col justify-between">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <Badge variant="tertiary">{product.category.name}</Badge>
+                <Badge variant="tertiary">{product.category?.name || "Mobilya"}</Badge>
                 {product.is_featured && <Badge variant="primary">Öne Çıkan</Badge>}
                 {product.is_customizable && (
                   <Badge variant="secondary">Özel Ölçüye Uygun</Badge>

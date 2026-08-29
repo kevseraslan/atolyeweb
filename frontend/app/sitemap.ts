@@ -31,12 +31,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   try {
     const productsData = await getProducts({ pageSize: 100 });
-    const productRoutes: MetadataRoute.Sitemap = productsData.items.map((product) => ({
+    // Filter strictly for active products belonging to active categories
+    const activeProducts = productsData.items.filter(
+      (product) => product.is_active && (!product.category || product.category.is_active !== false)
+    );
+
+    const productRoutes: MetadataRoute.Sitemap = activeProducts.map((product) => ({
       url: `${siteUrl}/urunler/${product.slug}`,
     }));
     return [...staticRoutes, ...productRoutes];
-  } catch {
-    // Graceful fallback if backend API is unreachable during static prerender build
+  } catch (err) {
+    console.error("[SITEMAP ERROR] Backend product fetch failed during sitemap generation:", err);
     return staticRoutes;
   }
 }

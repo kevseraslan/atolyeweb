@@ -14,7 +14,7 @@ export default function HomePage() {
             className="bg-cover bg-center bg-no-repeat w-full h-full absolute inset-0"
             style={{
               backgroundImage:
-                "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1920' height='1080' viewBox='0 0 1920 1080'><rect width='100%' height='100%' fill='%23f0eded'/><text x='50%' y='50%' font-family='serif' font-size='48' fill='%23442a22' text-anchor='middle' dy='.3em'>Artisan Woodworks Hero</text></svg>\")",
+                "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1920' height='1080' viewBox='0 0 1920 1080'><rect width='100%' height='100%' fill='%23f0eded'/><text x='50%' y='50%' font-family='serif' font-size='48' fill='%23442a22' text-anchor='middle' dy='.3em'>Masif Ahşap Mobilya Atölyesi</text></svg>\")",
             }}
           />
           <div className="absolute inset-0 bg-gradient-to-r from-[#fcf9f8]/95 via-[#fcf9f8]/80 to-[#fcf9f8]/40 md:w-3/4" />

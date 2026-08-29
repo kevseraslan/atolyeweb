@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { getSiteUrl } from "@/lib/site-url";
+import { getSiteName } from "@/lib/site-name";
 
 const inter = Inter({
   subsets: ["latin", "latin-ext"],
@@ -16,16 +17,18 @@ const playfair = Playfair_Display({
 });
 
 const siteUrl = getSiteUrl();
+const siteName = getSiteName();
+const defaultOgImage = `${siteUrl}/opengraph-default.svg`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Artisan Woodworks | Özel Mobilya & Masif Ahşap Tasarım",
-    template: "%s | Artisan Woodworks",
+    default: `Özel Mobilya & Masif Ahşap Tasarım | ${siteName}`,
+    template: `%s | ${siteName}`,
   },
   description:
     "Evinize özel ölçü ve zanaatkar üretimi masif ahşap mobilyalar. Yemek masası, konsol, sehpa ve özel tasarım ahşap mobilya atölyesi.",
-  applicationName: "Artisan Woodworks",
+  applicationName: siteName,
   robots: {
     index: true,
     follow: true,
@@ -38,16 +41,25 @@ export const metadata: Metadata = {
     type: "website",
     locale: "tr_TR",
     url: siteUrl,
-    siteName: "Artisan Woodworks",
-    title: "Artisan Woodworks | Özel Mobilya & Masif Ahşap Tasarım",
+    siteName: siteName,
+    title: `Özel Mobilya & Masif Ahşap Tasarım | ${siteName}`,
     description:
       "Evinize özel ölçü ve zanaatkar üretimi masif ahşap mobilyalar. Yemek masası, konsol, sehpa ve özel tasarım ahşap mobilya atölyesi.",
+    images: [
+      {
+        url: defaultOgImage,
+        width: 1200,
+        height: 630,
+        alt: siteName,
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Artisan Woodworks | Özel Mobilya & Masif Ahşap Tasarım",
+    title: `Özel Mobilya & Masif Ahşap Tasarım | ${siteName}`,
     description:
       "Evinize özel ölçü ve zanaatkar üretimi masif ahşap mobilyalar. Yemek masası, konsol, sehpa ve özel tasarım ahşap mobilya atölyesi.",
+    images: [defaultOgImage],
   },
   alternates: {
     canonical: siteUrl,
