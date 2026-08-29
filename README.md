@@ -1,56 +1,15 @@
-# Furniture Workshop (Özel Üretim Mobilya Atölyesi)
+# Artisan Woodworks - Mobilya Atölyesi Web Uygulaması
 
-Özel üretim mobilya atölyesi için geliştirilen profesyonel web uygulaması ve yönetim sistemi.
+Özel üretim masif ahşap mobilya atölyesi için geliştirilen Next.js 16 + FastAPI + PostgreSQL web uygulaması projesi.
 
-## Teknoloji Stack
+## Cloudinary Development Setup
 
-* **Frontend:** Next.js 16 (App Router, TypeScript 5, Tailwind CSS v4)
-* **Backend:** FastAPI 0.141 (Python 3.10, SQLAlchemy 2.0 Async, Alembic 1.19, Pydantic 2.13)
-* **Veritabanı (Local):** PostgreSQL 16 (Local Docker Container)
-* **Production Hedefi:** Self-Managed PostgreSQL on Contabo Ubuntu VPS + Nginx + Systemd
-* **Medya Yönetimi:** Cloudinary Free CDN (Yalnız Admin içerikleri: ürünler ve dokular)
+Görsel yükleme altyapısı (Aşama 9) Cloudinary CDN servisini kullanmaktadır. Local geliştirme ortamında `.env` dosyası içerisinde aşağıdaki ortam değişkenleri tanımlanabilir:
 
-## Monorepo Yapısı
-
-```text
-furniture-workshop/
-├── frontend/         # Next.js Frontend Uygulaması
-├── backend/          # FastAPI REST API Backend Uygulaması
-├── docs/             # Mimari ve Sistem Dokümanları
-├── compose.yaml      # Local PostgreSQL Container Yapılandırması
-└── README.md
+```env
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
 ```
 
-## Yerel Geliştirme (Local Development Setup)
-
-### 1. PostgreSQL Veritabanını Çalıştırma
-```bash
-docker compose up -d
-```
-
-### 2. Backend (FastAPI) Çalıştırma
-```bash
-cd backend
-python -m venv .venv
-# Windows:
-.venv\Scripts\activate
-# Linux/macOS:
-# source .venv/bin/activate
-
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
-```
-Backend API adresi: `http://localhost:8000/api/v1/health`  
-Swagger/OpenAPI Dokümanı: `http://localhost:8000/docs`
-
-### 3. Frontend (Next.js) Çalıştırma
-```bash
-cd frontend
-npm install
-npm run dev
-```
-Frontend adresi: `http://localhost:3000`
-
-## Environment Yapılandırması
-* Frontend için `frontend/.env.example` dosyasını `frontend/.env.local` olarak kopyalayın.
-* Backend için `backend/.env.example` dosyasını `backend/.env` olarak kopyalayın.
+> **Güvenlik Uyarısı:** Gerçek Cloudinary API anahtarları ve secret bilgileri kesinlikle Git deposuna veya istemci tarafına (`NEXT_PUBLIC_`) eklenmemelidir.

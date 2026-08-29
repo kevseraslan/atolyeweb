@@ -31,11 +31,19 @@ class NotFoundException(AppException):
         )
 
 class BadRequestException(AppException):
-    def __init__(self, message: str = "Invalid request"):
+    def __init__(self, message: str = "Invalid request", code: str = "BAD_REQUEST"):
         super().__init__(
             message=message,
-            code="BAD_REQUEST",
+            code=code,
             status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+class PayloadTooLargeException(AppException):
+    def __init__(self, message: str = "File size exceeds maximum allowed limit"):
+        super().__init__(
+            message=message,
+            code="PAYLOAD_TOO_LARGE",
+            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
         )
 
 class UnauthorizedException(AppException):
