@@ -1,0 +1,82 @@
+name: CI Release Verification
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: furniture_workshop_test
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install Dependencies
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Alembic Migration Test
+        env:
+          DATABASE_URL: postgresql+asyncpg://test_user:test_password@localhost:5432/furniture_workshop_test
+          AUTH_SECRET: test_secret_key_minimum_32_characters_for_ci_build
+        run: |
+          cd backend
+          alembic upgrade head
+          alembic current
+
+      - name: Run Backend Pytest Suite
+        env:
+          DATABASE_URL: postgresql+asyncpg://test_user:test_password@localhost:5432/furniture_workshop_test
+          AUTH_SECRET: test_secret_key_minimum_32_characters_for_ci_build
+        run: |
+          cd backend
+          pytest
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Run Frontend Lint
+        run: |
+          cd frontend
+          npm run lint
+
+      - name: Build Next.js Application
+        run: |
+          cd frontend
+          npm run build
