@@ -21,53 +21,27 @@ Internet
 
 ---
 
-## 2. Sunucu İşletim Sistemi & Kullanıcı İzolasyonu
+## 2. PROVISIONED & VERIFIED IN REPO (Aşama 18A - Şablonlar & Altyapı Hazırlığı)
 
-- **İşletim Sistemi:** Ubuntu 24.04 LTS (veya 22.04 LTS) 64-bit.
-- **Uygulama Kullanıcısı:** Özel `furniture` kullanıcısı (root yetkisi olmayan yetkisiz sistem kullanıcısı).
-- **Dizin Yapısı:**
-  `/srv/furniture-workshop/`
-  ├── `app/` (Backend & Frontend kaynak kodları)
-  ├── `env/` (backend.env, frontend.env - `chmod 600`)
-  ├── `logs/` (Uygulama logları - stdout/stderr -> systemd journal)
-  └── `backups/` (PostgreSQL günlük yedekleme dizini)
+### A) Sunucu Kurulum & Servis Şablonları
+- **Kurulum Betiği:** [deploy/setup-server.sh](file:///c:/Users/kevse/OneDrive/Desktop/mobilya/deploy/setup-server.sh) (Ubuntu 24.04 LTS, Node 24, PostgreSQL 16, UFW, Nginx, `furniture` kullanıcısı kurulum adımları).
+- **Backend Systemd Servisi:** [deploy/systemd/furniture-backend.service](file:///c:/Users/kevse/OneDrive/Desktop/mobilya/deploy/systemd/furniture-backend.service) (`127.0.0.1:8000`, 1 worker, `NoNewPrivileges=true`).
+- **Frontend Systemd Servisi:** [deploy/systemd/furniture-frontend.service](file:///c:/Users/kevse/OneDrive/Desktop/mobilya/deploy/systemd/furniture-frontend.service) (`127.0.0.1:3000`, Node 24 `npm run start`).
+- **Nginx Konfigürasyon Şablonu:** [deploy/nginx/furniture-workshop.conf](file:///c:/Users/kevse/OneDrive/Desktop/mobilya/deploy/nginx/furniture-workshop.conf) (`client_max_body_size 12M`, gzip, reverse proxy).
 
----
-
-## 3. Sistem Servisleri (Systemd)
-
-- **Backend Servisi:** `deploy/systemd/furniture-backend.service` (`User=furniture`, `127.0.0.1:8000`, 1 Uvicorn worker).
-- **Frontend Servisi:** `deploy/systemd/furniture-frontend.service` (`User=furniture`, `127.0.0.1:3000`, Node 24 `npm run start`).
-- **Güvenlik Sertleştirmeleri:** `NoNewPrivileges=true`, `PrivateTmp=true`, `ProtectSystem=full`.
+### B) Çevre Değişkenleri & Şifreleme Standartları
+- [backend/.env.example](file:///c:/Users/kevse/OneDrive/Desktop/mobilya/backend/.env.example) ve [frontend/.env.example](file:///c:/Users/kevse/OneDrive/Desktop/mobilya/frontend/.env.example) güncellenmiştir.
+- `TRUST_PROXY=false` (Nginx başlık temizliği tamamlanana kadar).
+- `NEXT_PUBLIC_SITE_INDEXABLE=false` (Domain canlıya alınana kadar).
+- `AUTH_SECRET`: En az 32 karakterlik kriptografik rastgele anahtar.
 
 ---
 
-## 4. Veritabanı Yapılandırması (PostgreSQL 16)
+## 3. DEFERRED TO LIVE VPS PROVISIONING & STAGE 19 (Aşama 18B & Aşama 19)
 
-- **Erişim:** `listen_addresses = 'localhost'` (Dış IP'lerden bağlantı reddedilir).
-- **Uygulama Kullanıcısı:** `furniture_app` (Superuser veya CREATEDB yetkisi YOKTUR).
-- **Parola Şifreleme:** `password_encryption = scram-sha-256`.
-- **Şema Kurulumu:** Canlı ortamda şema kurulumu yalnızca `alembic upgrade head` ile yapılır (`create_all()` kullanılmaz).
-
----
-
-## 5. Güvenlik Duvarı & SSH Güvenliği (UFW / Fail2ban)
-
-- **UFW Firewall:**
-  - `ufw default deny inbound`
-  - `ufw allow 22/tcp` (SSH)
-  - `ufw allow 80/tcp` (HTTP)
-  - `ufw allow 443/tcp` (HTTPS)
-  - Port `3000`, `8000`, `5432` doğrudan engellenmiştir.
-- **Fail2ban:** SSH kaba kuvvet saldırılarına karşı `sshd` jail aktiftir.
-
----
-
-## 6. Aşama 19 Canlı Dağıtım Öncesi Denetim Listesi (Pre-Deployment Checklist)
-
-- [ ] Contabo VPS üzerinde `deploy/setup-server.sh` betiğinin çalıştırılması.
-- [ ] `/srv/furniture-workshop/env/backend.env` ve `frontend.env` dosyalarının 600 izinleriyle oluşturulması.
-- [ ] `AUTH_SECRET` için en az 32 karakterlik kriptografik rastgele anahtar üretilmesi.
+- [ ] Contabo VPS üzerinde SSH bağlantısının sağlanması ve `deploy/setup-server.sh` çalıştırılması.
+- [ ] `/srv/furniture-workshop/env/backend.env` ve `frontend.env` dosyalarının gerçek canlı parolalarla (`chmod 600`) oluşturulması.
+- [ ] Canlı PostgreSQL 16 veritabanında `alembic upgrade head` çalıştırılması.
 - [ ] Etkileşimli script (`python -m app.scripts.create_admin`) ile canlı ilk admin hesabının oluşturulması.
 - [ ] Alan adı DNS A/AAAA kayıtlarının VPS IP adresine yönlendirilmesi (Aşama 19).
 - [ ] Nginx Let's Encrypt SSL/TLS sertifikasının Certbot ile alınması (Aşama 19).
