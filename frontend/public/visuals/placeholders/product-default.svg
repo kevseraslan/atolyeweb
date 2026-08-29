@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">
+  <defs>
+    <linearGradient id="pBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbf9f8"/>
+      <stop offset="100%" stop-color="#eee7e2"/>
+    </linearGradient>
+    <linearGradient id="pWood" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#693d2f"/>
+      <stop offset="100%" stop-color="#4d291e"/>
+    </linearGradient>
+    <linearGradient id="pWoodLight" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#915b49"/>
+      <stop offset="100%" stop-color="#734233"/>
+    </linearGradient>
+    <filter id="pShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#442a22" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <rect width="800" height="600" fill="url(#pBg)"/>
+
+  <!-- Minimalist Studio Pedestal & Ambient Glow -->
+  <circle cx="400" cy="300" r="190" fill="#e5dbd3" opacity="0.6"/>
+  <ellipse cx="400" cy="470" rx="220" ry="20" fill="#442a22" opacity="0.1"/>
+
+  <!-- Iconic Crafted Furniture Silhouette (Modern Solid Wood Table & Chair) -->
+  <g filter="url(#pShadow)" transform="translate(150, 140)">
+    <!-- Table Top -->
+    <polygon points="100,210 400,210 430,235 70,235" fill="url(#pWoodLight)"/>
+    <polygon points="70,235 430,235 425,248 65,248" fill="url(#pWood)"/>
+    
+    <!-- Table Legs -->
+    <polygon points="110,248 125,248 115,360 95,360" fill="url(#pWood)"/>
+    <polygon points="385,248 400,248 415,360 395,360" fill="url(#pWood)"/>
+    <polygon points="160,248 175,248 180,345 168,345" fill="#381c13"/>
+    <polygon points="335,248 350,248 355,345 343,345" fill="#381c13"/>
+
+    <!-- Chair Beside Table -->
+    <!-- Backrest -->
+    <path d="M 220,130 Q 250,115 280,130 Q 250,122 220,130 Z" fill="#4d291e"/>
+    <line x1="230" y1="128" x2="228" y2="230" stroke="#693d2f" stroke-width="3"/>
+    <line x1="250" y1="122" x2="250" y2="225" stroke="#693d2f" stroke-width="3"/>
+    <line x1="270" y1="128" x2="272" y2="230" stroke="#693d2f" stroke-width="3"/>
+    <!-- Seat -->
+    <polygon points="215,225 285,225 280,240 220,240" fill="url(#pWoodLight)"/>
+    <!-- Legs -->
+    <line x1="222" y1="240" x2="218" y2="350" stroke="#4d291e" stroke-width="5" stroke-linecap="round"/>
+    <line x1="278" y1="240" x2="282" y2="350" stroke="#4d291e" stroke-width="5" stroke-linecap="round"/>
+  </g>
+
+  <!-- Clean Bottom Watermark Badge -->
+  <g transform="translate(270, 520)">
+    <rect x="0" y="0" width="260" height="32" rx="16" fill="#ffffff" fill-opacity="0.9" stroke="#d4c3be" stroke-width="1"/>
+    <text x="130" y="20" font-family="serif" font-size="11" font-weight="600" fill="#442a22" text-anchor="middle" letter-spacing="1">ÖZEL ÜRETİM MASİF AHŞAP</text>
+  </g>
+</svg>

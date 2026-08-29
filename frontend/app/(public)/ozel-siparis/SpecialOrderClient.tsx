@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -104,7 +105,7 @@ export function SpecialOrderClient() {
       setOrderResult(res);
     } catch (err) {
       setErrorMessage(
-        err instanceof Error ? err.message : "Talebiniz gönderilemedi. Lütfen bilgilerinizi kontrol edip tekrar deneyiniz."
+        err instanceof Error ? err.message : "Sipariş oluşturulamadı. Lütfen bilgilerinizi kontrol ediniz."
       );
     } finally {
       setSubmitting(false);
@@ -115,7 +116,7 @@ export function SpecialOrderClient() {
     if (orderResult) {
       navigator.clipboard.writeText(orderResult.tracking_number);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => setCopied(false), 2500);
     }
   };
 
@@ -123,7 +124,7 @@ export function SpecialOrderClient() {
     return (
       <div className="w-full py-16">
         <PageContainer className="max-w-2xl">
-          <div className="bg-[#fcf9f8] border border-[#e5e2e1] rounded-lg p-8 md:p-12 text-center shadow-sm">
+          <div className="bg-[#fcf9f8] border border-[#e5e2e1] rounded-2xl p-8 md:p-12 text-center shadow-sm">
             <div className="w-16 h-16 bg-[#442a22] text-white rounded-full flex items-center justify-center mx-auto mb-6">
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
@@ -138,7 +139,7 @@ export function SpecialOrderClient() {
             </p>
 
             {/* Tracking Number Box */}
-            <div className="bg-[#f6f3f2] border border-[#d4c3be] p-6 rounded-md mb-8">
+            <div className="bg-[#f6f3f2] border border-[#d4c3be] p-6 rounded-xl mb-8">
               <span className="text-xs uppercase font-semibold text-[#827470] tracking-widest block mb-2">
                 Sipariş Takip Numarası
               </span>
@@ -149,7 +150,7 @@ export function SpecialOrderClient() {
                 <button
                   type="button"
                   onClick={copyTrackingNumber}
-                  className="px-3 py-1 bg-[#442a22] text-white text-xs font-semibold rounded hover:bg-[#2c1b16] transition-colors"
+                  className="px-3.5 py-1.5 bg-[#442a22] text-white text-xs font-semibold rounded-lg hover:bg-[#2c1b16] transition-colors"
                 >
                   {copied ? "Kopyalandı!" : "Kopyala"}
                 </button>
@@ -180,29 +181,41 @@ export function SpecialOrderClient() {
   return (
     <div className="w-full py-16">
       <PageContainer className="max-w-4xl">
-        <div className="text-center mb-12">
-          <Badge variant="secondary" className="mb-3">Özel Üretim & Teklif Talebi</Badge>
-          <h1 className="font-serif text-3xl md:text-5xl text-[#442a22] font-bold mb-4">
-            Evinize Özel Mobilya Siparişi
-          </h1>
-          <p className="text-base text-[#504441] max-w-2xl mx-auto leading-relaxed">
-            Hayalinizdeki mobilyayı istediğiniz ölçü, ahşap ve cila seçeneği ile üretiyoruz. Formu doldurarak ücretsiz fiyat teklifi alabilirsiniz.
-          </p>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center mb-12">
+          <div className="lg:col-span-8 flex flex-col gap-3 text-left">
+            <Badge variant="secondary" className="w-fit">Özel Üretim &amp; Teklif Talebi</Badge>
+            <h1 className="font-serif text-3xl md:text-5xl text-[#442a22] font-bold">
+              Evinize Özel Mobilya Siparişi
+            </h1>
+            <p className="text-base text-[#504441] leading-relaxed">
+              Hayalinizdeki mobilyayı istediğiniz ölçü, masif ahşap cinsi ve renk tonu ile üretiyoruz. Formu doldurarak ücretsiz fiyat teklifi alabilirsiniz.
+            </p>
+          </div>
+          <div className="lg:col-span-4 hidden sm:block">
+            <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-sm border border-[#e5e2e1] bg-[#f6f2ef]">
+              <Image
+                src="/visuals/illustrations/custom-order-step.svg"
+                alt="Özel ölçü mobilya çizimi ve zanaat planlaması"
+                fill
+                className="object-cover"
+              />
+            </div>
+          </div>
         </div>
 
         {errorMessage && (
-          <div className="mb-8 p-4 bg-red-50 border border-red-200 text-red-700 rounded text-sm text-center">
+          <div className="mb-8 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm text-center">
             {errorMessage}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="bg-[#fcf9f8] border border-[#e5e2e1] rounded-lg p-6 md:p-10 shadow-sm flex flex-col gap-8">
+        <form onSubmit={handleSubmit} className="bg-[#fcf9f8] border border-[#e5e2e1] rounded-2xl p-6 md:p-10 shadow-sm flex flex-col gap-8">
           {/* Section 1: Product Choice */}
           <div>
             <h3 className="font-serif text-xl font-semibold text-[#442a22] mb-4 border-b border-[#e5e2e1] pb-2">
               1. Ürün Seçimi
             </h3>
-            <div className="flex gap-4 mb-6">
+            <div className="flex gap-6 mb-6">
               <label className="flex items-center gap-2 text-sm font-medium text-[#442a22] cursor-pointer">
                 <input
                   type="radio"
@@ -238,7 +251,7 @@ export function SpecialOrderClient() {
                   <select
                     value={selectedProductId || ""}
                     onChange={(e) => setSelectedProductId(Number(e.target.value))}
-                    className="w-full p-3 bg-white border border-[#d4c3be] rounded text-sm text-[#1b1c1c] focus:outline-none focus:border-[#442a22]"
+                    className="w-full p-3 bg-white border border-[#d4c3be] rounded-lg text-sm text-[#1b1c1c] focus:outline-none focus:border-[#442a22]"
                   >
                     {products.map((p) => (
                       <option key={p.id} value={p.id}>
@@ -258,7 +271,7 @@ export function SpecialOrderClient() {
                   placeholder="Örn: 8 Kişilik Masif Meşe Oval Yemek Masası"
                   value={customProductName}
                   onChange={(e) => setCustomProductName(e.target.value)}
-                  className="w-full p-3 bg-white border border-[#d4c3be] rounded text-sm text-[#1b1c1c] focus:outline-none focus:border-[#442a22]"
+                  className="w-full p-3 bg-white border border-[#d4c3be] rounded-lg text-sm text-[#1b1c1c] focus:outline-none focus:border-[#442a22]"
                 />
               </div>
             )}
@@ -267,7 +280,7 @@ export function SpecialOrderClient() {
           {/* Section 2: Dimensions & Quantity */}
           <div>
             <h3 className="font-serif text-xl font-semibold text-[#442a22] mb-4 border-b border-[#e5e2e1] pb-2">
-              2. İstenen Ölçüler (cm) & Adet
+              2. İstenen Ölçüler (cm) &amp; Adet
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
               <div>
@@ -277,7 +290,7 @@ export function SpecialOrderClient() {
                   placeholder="180"
                   value={width}
                   onChange={(e) => setWidth(e.target.value)}
-                  className="w-full p-3 bg-white border border-[#d4c3be] rounded text-sm text-[#1b1c1c]"
+                  className="w-full p-3 bg-white border border-[#d4c3be] rounded-lg text-sm text-[#1b1c1c]"
                 />
               </div>
               <div>
@@ -287,7 +300,7 @@ export function SpecialOrderClient() {
                   placeholder="75"
                   value={height}
                   onChange={(e) => setHeight(e.target.value)}
-                  className="w-full p-3 bg-white border border-[#d4c3be] rounded text-sm text-[#1b1c1c]"
+                  className="w-full p-3 bg-white border border-[#d4c3be] rounded-lg text-sm text-[#1b1c1c]"
                 />
               </div>
               <div>
@@ -297,7 +310,7 @@ export function SpecialOrderClient() {
                   placeholder="90"
                   value={depth}
                   onChange={(e) => setDepth(e.target.value)}
-                  className="w-full p-3 bg-white border border-[#d4c3be] rounded text-sm text-[#1b1c1c]"
+                  className="w-full p-3 bg-white border border-[#d4c3be] rounded-lg text-sm text-[#1b1c1c]"
                 />
               </div>
               <div>
@@ -308,7 +321,7 @@ export function SpecialOrderClient() {
                   max="100"
                   value={quantity}
                   onChange={(e) => setQuantity(parseInt(e.target.value, 10) || 1)}
-                  className="w-full p-3 bg-white border border-[#d4c3be] rounded text-sm text-[#1b1c1c]"
+                  className="w-full p-3 bg-white border border-[#d4c3be] rounded-lg text-sm text-[#1b1c1c]"
                 />
               </div>
             </div>
@@ -317,7 +330,7 @@ export function SpecialOrderClient() {
           {/* Section 3: Color & Material Options */}
           <div>
             <h3 className="font-serif text-xl font-semibold text-[#442a22] mb-4 border-b border-[#e5e2e1] pb-2">
-              3. Renk, Cila & Malzeme Seçimi
+              3. Renk, Cila &amp; Malzeme Seçimi
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
@@ -325,7 +338,7 @@ export function SpecialOrderClient() {
                 <select
                   value={selectedColorId || ""}
                   onChange={(e) => setSelectedColorId(e.target.value ? Number(e.target.value) : null)}
-                  className="w-full p-3 bg-white border border-[#d4c3be] rounded text-sm text-[#1b1c1c]"
+                  className="w-full p-3 bg-white border border-[#d4c3be] rounded-lg text-sm text-[#1b1c1c]"
                 >
                   <option value="">Seçim Yapılmadı (Atölye Önerisi)</option>
                   {availableColors.map((c) => (
@@ -340,7 +353,7 @@ export function SpecialOrderClient() {
                 <select
                   value={selectedMaterialId || ""}
                   onChange={(e) => setSelectedMaterialId(e.target.value ? Number(e.target.value) : null)}
-                  className="w-full p-3 bg-white border border-[#d4c3be] rounded text-sm text-[#1b1c1c]"
+                  className="w-full p-3 bg-white border border-[#d4c3be] rounded-lg text-sm text-[#1b1c1c]"
                 >
                   <option value="">Seçim Yapılmadı (Masif Ahşap)</option>
                   {materials.map((m) => (
@@ -356,14 +369,14 @@ export function SpecialOrderClient() {
           {/* Section 4: Details & Note */}
           <div>
             <h3 className="font-serif text-xl font-semibold text-[#442a22] mb-4 border-b border-[#e5e2e1] pb-2">
-              4. Detaylar & Özel İstekler
+              4. Detaylar &amp; Özel İstekler
             </h3>
             <textarea
               rows={4}
               placeholder="Mobilyada istediğiniz özel detaylar, bacak modeli, kenar pahtı veya özel notlarınız..."
               value={customNote}
               onChange={(e) => setCustomNote(e.target.value)}
-              className="w-full p-3 bg-white border border-[#d4c3be] rounded text-sm text-[#1b1c1c] focus:outline-none focus:border-[#442a22]"
+              className="w-full p-3 bg-white border border-[#d4c3be] rounded-lg text-sm text-[#1b1c1c] focus:outline-none focus:border-[#442a22]"
             />
           </div>
 
@@ -380,7 +393,7 @@ export function SpecialOrderClient() {
                   placeholder="Ahmet Yılmaz"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
-                  className="w-full p-3 bg-white border border-[#d4c3be] rounded text-sm text-[#1b1c1c]"
+                  className="w-full p-3 bg-white border border-[#d4c3be] rounded-lg text-sm text-[#1b1c1c]"
                 />
               </div>
               <div>
@@ -390,7 +403,7 @@ export function SpecialOrderClient() {
                   placeholder="0532 123 45 67"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full p-3 bg-white border border-[#d4c3be] rounded text-sm text-[#1b1c1c]"
+                  className="w-full p-3 bg-white border border-[#d4c3be] rounded-lg text-sm text-[#1b1c1c]"
                 />
               </div>
               <div>
@@ -400,7 +413,7 @@ export function SpecialOrderClient() {
                   placeholder="ahmet@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full p-3 bg-white border border-[#d4c3be] rounded text-sm text-[#1b1c1c]"
+                  className="w-full p-3 bg-white border border-[#d4c3be] rounded-lg text-sm text-[#1b1c1c]"
                 />
               </div>
               <div>
@@ -410,7 +423,7 @@ export function SpecialOrderClient() {
                   placeholder="İstanbul"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  className="w-full p-3 bg-white border border-[#d4c3be] rounded text-sm text-[#1b1c1c]"
+                  className="w-full p-3 bg-white border border-[#d4c3be] rounded-lg text-sm text-[#1b1c1c]"
                 />
               </div>
             </div>

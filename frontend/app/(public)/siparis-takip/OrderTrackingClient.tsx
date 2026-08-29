@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -67,83 +68,102 @@ export function OrderTrackingClient() {
 
   return (
     <div className="w-full py-16">
-      <PageContainer className="max-w-3xl">
-        <div className="text-center mb-10">
-          <Badge variant="secondary" className="mb-3">Sipariş & Teklif Durumu</Badge>
+      <PageContainer className="max-w-4xl">
+        <div className="text-center mb-12">
+          <Badge variant="secondary" className="mb-3">Sipariş &amp; Teklif Durumu</Badge>
           <h1 className="font-serif text-3xl md:text-5xl text-[#442a22] font-bold mb-4">
             Sipariş Takibi
           </h1>
           <p className="text-base text-[#504441] max-w-xl mx-auto leading-relaxed">
-            Siparişinizin veya özel teklif talebinizin güncel durumunu sorgulamak için takip numaranızı ve telefon numaranızı giriniz.
+            Siparişinizin veya özel teklif talebinizin güncel üretim durumunu sorgulamak için takip numaranızı ve telefon numaranızı giriniz.
           </p>
         </div>
 
-        {/* Tracking Form */}
-        <div className="bg-[#fcf9f8] border border-[#e5e2e1] rounded-lg p-6 md:p-8 shadow-sm mb-10">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-[#504441] mb-2">
-                  Takip Numarası *
-                </label>
-                <input
-                  type="text"
-                  placeholder="Örn: ATL-2026-A7K39P"
-                  value={trackingNumber}
-                  onChange={(e) => setTrackingNumber(e.target.value)}
-                  className="w-full p-3 bg-white border border-[#d4c3be] rounded text-sm text-[#1b1c1c] uppercase font-mono placeholder:normal-case placeholder:font-sans focus:outline-none focus:border-[#442a22]"
-                />
+        {/* Tracking Form Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-10">
+          <div className={`${orderData ? "lg:col-span-12" : "lg:col-span-7"} bg-[#fcf9f8] border border-[#e5e2e1] rounded-2xl p-6 md:p-8 shadow-sm`}>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#504441] mb-2">
+                    Takip Numarası *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Örn: ORD-2026-A7K39P"
+                    value={trackingNumber}
+                    onChange={(e) => setTrackingNumber(e.target.value)}
+                    className="w-full p-3 bg-white border border-[#d4c3be] rounded-lg text-sm text-[#1b1c1c] uppercase font-mono placeholder:normal-case placeholder:font-sans focus:outline-none focus:border-[#442a22]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#504441] mb-2">
+                    Telefon Numarası *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Örn: 0532 123 45 67"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="w-full p-3 bg-white border border-[#d4c3be] rounded-lg text-sm text-[#1b1c1c] focus:outline-none focus:border-[#442a22]"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-[#504441] mb-2">
-                  Telefon Numarası *
-                </label>
-                <input
-                  type="text"
-                  placeholder="Örn: 0532 123 45 67"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full p-3 bg-white border border-[#d4c3be] rounded text-sm text-[#1b1c1c] focus:outline-none focus:border-[#442a22]"
-                />
-              </div>
-            </div>
 
-            {errorMessage && (
-              <div className="p-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded text-center">
-                {errorMessage}
-              </div>
-            )}
-
-            <div className="flex gap-3 pt-2">
-              <Button
-                type="submit"
-                variant="primary"
-                size="lg"
-                className="flex-1 font-semibold"
-                disabled={loading}
-              >
-                {loading ? "Sorgulanıyor..." : "Siparişi Sorgula"}
-              </Button>
-              {orderData && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="lg"
-                  onClick={handleReset}
-                >
-                  Yeni Sorgulama
-                </Button>
+              {errorMessage && (
+                <div className="p-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg text-center">
+                  {errorMessage}
+                </div>
               )}
+
+              <div className="flex gap-3 pt-2">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="lg"
+                  className="flex-1 font-semibold"
+                  disabled={loading}
+                >
+                  {loading ? "Sorgulanıyor..." : "Siparişi Sorgula"}
+                </Button>
+                {orderData && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="lg"
+                    onClick={handleReset}
+                  >
+                    Yeni Sorgulama
+                  </Button>
+                )}
+              </div>
+              <p className="text-xs text-center text-[#827470] mt-2">
+                Telefon numaranız yalnızca güvenlik ve talep eşleştirmesi amacıyla kullanılır.
+              </p>
+            </form>
+          </div>
+
+          {/* Supportive Tracking Visual when no result is active */}
+          {!orderData && (
+            <div className="lg:col-span-5 flex flex-col gap-4">
+              <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-sm border border-[#e5e2e1] bg-[#f6f2ef]">
+                <Image
+                  src="/visuals/illustrations/tracking-status.svg"
+                  alt="Aşama aşama şeffaf mobilya üretim ve sipariş takibi"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <div className="p-4 bg-[#fcf9f8] rounded-xl border border-[#e5e2e1] text-xs text-[#504441] leading-relaxed">
+                💡 Siparişiniz atölyemizde incelendikten, teklif onaylandıktan ve üretime alındıktan sonra tüm durum değişikliklerini bu ekrandan anlık olarak takip edebilirsiniz.
+              </div>
             </div>
-            <p className="text-xs text-center text-[#827470] mt-2">
-              Telefon numaranız yalnızca talep doğrulaması amacıyla kullanılır.
-            </p>
-          </form>
+          )}
         </div>
 
         {/* Tracking Result View */}
         {orderData && currentStatusConfig && (
-          <div className="bg-[#fcf9f8] border border-[#e5e2e1] rounded-lg p-6 md:p-8 shadow-sm flex flex-col gap-8">
+          <div className="bg-[#fcf9f8] border border-[#e5e2e1] rounded-2xl p-6 md:p-8 shadow-sm flex flex-col gap-8">
             {/* Header Summary */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-[#e5e2e1] pb-6">
               <div>
@@ -160,7 +180,7 @@ export function OrderTrackingClient() {
             </div>
 
             {/* Product Details */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 bg-white p-5 border border-[#e5e2e1] rounded-md">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 bg-white p-5 border border-[#e5e2e1] rounded-xl">
               <div>
                 <span className="text-xs text-[#827470] block uppercase font-medium">Ürün</span>
                 <span className="text-sm font-semibold text-[#442a22]">{orderData.product_name}</span>
@@ -196,7 +216,7 @@ export function OrderTrackingClient() {
             </div>
 
             {/* Status Description Box */}
-            <div className="p-4 bg-[#f6f3f2] border-l-4 border-[#442a22] text-sm text-[#442a22] rounded-r">
+            <div className="p-4 bg-[#f6f3f2] border-l-4 border-[#442a22] text-sm text-[#442a22] rounded-r-lg">
               <span className="font-semibold block mb-1">Mevcut Durum: {currentStatusConfig.label}</span>
               <p className="text-[#504441]">{currentStatusConfig.description}</p>
             </div>

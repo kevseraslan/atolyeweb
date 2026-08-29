@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" width="100%" height="100%">
+  <defs>
+    <linearGradient id="trackGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fdfbf9"/>
+      <stop offset="100%" stop-color="#f2ebe5"/>
+    </linearGradient>
+    <filter id="trackShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#442a22" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <rect width="600" height="400" rx="16" fill="url(#trackGrad)"/>
+
+  <!-- Timeline Progression Artwork -->
+  <g filter="url(#trackShadow)" transform="translate(80, 80)">
+    <!-- Stage Card Frame -->
+    <rect x="0" y="0" width="440" height="240" rx="12" fill="#ffffff" stroke="#d4c3be" stroke-width="1"/>
+
+    <!-- Progress Line -->
+    <line x1="60" y1="120" x2="380" y2="120" stroke="#d4c3be" stroke-width="3" stroke-linecap="round"/>
+    <line x1="60" y1="120" x2="220" y2="120" stroke="#442a22" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- Step 1: Talep Alındı -->
+    <circle cx="60" cy="120" r="16" fill="#442a22"/>
+    <path d="M 54,120 L 58,124 L 66,116" stroke="#ffffff" stroke-width="2" fill="none"/>
+    <text x="60" y="160" font-family="sans-serif" font-size="11" font-weight="600" fill="#442a22" text-anchor="middle">Talep</text>
+
+    <!-- Step 2: İnceleme / Teklif -->
+    <circle cx="170" cy="120" r="16" fill="#442a22"/>
+    <path d="M 164,120 L 168,124 L 176,116" stroke="#ffffff" stroke-width="2" fill="none"/>
+    <text x="170" y="160" font-family="sans-serif" font-size="11" font-weight="600" fill="#442a22" text-anchor="middle">İnceleme</text>
+
+    <!-- Step 3: Üretim (Aktif pulse) -->
+    <circle cx="280" cy="120" r="20" fill="#eed9cc"/>
+    <circle cx="280" cy="120" r="14" fill="#8d5b4c"/>
+    <circle cx="280" cy="120" r="6" fill="#ffffff"/>
+    <text x="280" y="160" font-family="sans-serif" font-size="11" font-weight="600" fill="#8d5b4c" text-anchor="middle">Üretim</text>
+
+    <!-- Step 4: Teslimat -->
+    <circle cx="380" cy="120" r="14" fill="#f0eded" stroke="#d4c3be" stroke-width="2"/>
+    <text x="380" y="160" font-family="sans-serif" font-size="11" font-weight="600" fill="#827470" text-anchor="middle">Teslimat</text>
+
+    <!-- Header status icon -->
+    <rect x="140" y="30" width="160" height="32" rx="16" fill="#f6f3f2" stroke="#d4c3be" stroke-width="1"/>
+    <text x="220" y="50" font-family="sans-serif" font-size="11" font-weight="600" fill="#442a22" text-anchor="middle">ŞEFFAF SİPARİŞ TAKİBİ</text>
+  </g>
+</svg>

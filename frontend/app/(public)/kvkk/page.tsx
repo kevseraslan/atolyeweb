@@ -1,23 +1,35 @@
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { PageContainer } from "@/components/layout/PageContainer";
 
 export const metadata = {
-  title: "KVKK Aydınlatma Metni | Artisan Woodworks",
+  title: "KVKK Aydınlatma Metni | Özel Mobilya Atölyesi",
   description: "6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında kişisel verilerinizin işlenmesine ilişkin aydınlatma metni.",
 };
 
 export default function KvkkPage() {
   return (
     <PageContainer>
-      <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8 bg-white rounded-lg shadow-sm border border-[#e5e2e1]">
-        <h1 className="font-serif text-3xl md:text-4xl text-[#442a22] font-bold mb-6 border-b border-[#e5e2e1] pb-4">
-          6698 Sayılı KVKK Uyarınca Kişisel Verilerin İşlenmesine İlişkin Aydınlatma Metni
-        </h1>
-
-        <p className="text-sm text-[#504441] mb-8 italic">
-          Son Güncelleme Tarihi: 29 Ağustos 2026
-        </p>
+      <div className="max-w-4xl mx-auto my-12 py-12 px-6 sm:px-10 bg-white rounded-2xl shadow-sm border border-[#e5e2e1]">
+        <div className="flex items-center gap-4 border-b border-[#e5e2e1] pb-6 mb-8">
+          <div className="w-14 h-14 relative flex-shrink-0">
+            <Image
+              src="/visuals/illustrations/legal-shield.svg"
+              alt="Veri Koruma & KVKK Rozeti"
+              fill
+              className="object-contain"
+            />
+          </div>
+          <div>
+            <h1 className="font-serif text-2xl sm:text-3xl md:text-4xl text-[#442a22] font-bold">
+              Kişisel Verilerin İşlenmesine İlişkin Aydınlatma Metni
+            </h1>
+            <p className="text-xs text-[#827470] mt-1 italic">
+              6698 Sayılı KVKK Uyarınca Bilgilendirme • Son Güncelleme: 29 Ağustos 2026
+            </p>
+          </div>
+        </div>
 
         <div className="space-y-8 text-[#1b1c1c] text-sm md:text-base leading-relaxed">
           {/* 1. Veri Sorumlusu */}
@@ -26,12 +38,12 @@ export default function KvkkPage() {
               1. Veri Sorumlusu
             </h2>
             <p className="text-[#504441]">
-              6698 sayılı Kişisel Verilerin Korunması Kanunu (&quot;KVKK&quot;) uyarınca kişisel verileriniz; veri sorumlusu sıfatıyla **Artisan Woodworks** (&quot;Atölye&quot; / &quot;İşletme&quot;) tarafından aşağıda açıklanan kapsamda işlenmektedir.
+              6698 sayılı Kişisel Verilerin Korunması Kanunu (&quot;KVKK&quot;) uyarınca kişisel verileriniz; veri sorumlusu sıfatıyla atölyemiz (&quot;İşletme&quot;) tarafından aşağıda açıklanan kapsamda işlenmektedir.
             </p>
-            <div className="mt-3 p-4 bg-[#fcf9f8] rounded border border-[#e5e2e1] text-xs text-[#504441]">
-              <p><strong>Veri Sorumlusu Unvanı:</strong> Artisan Woodworks Masif Ahşap Atölyesi (Production öncesi resmi unvan doğrulanacaktır)</p>
+            <div className="mt-3 p-4 bg-[#fcf9f8] rounded-xl border border-[#e5e2e1] text-xs text-[#504441]">
+              <p><strong>Veri Sorumlusu:</strong> Özel Masif Ahşap Mobilya Atölyesi</p>
               <p className="mt-1"><strong>İletişim Adresi:</strong> İstanbul, Türkiye</p>
-              <p className="mt-1 text-amber-800">* Veri sorumlusu açık adresi ve resmi iletişim e-postası işletme tarafından yayına alma öncesi tanımlanacaktır.</p>
+              <p className="mt-1 text-amber-800">* Veri sorumlusu açık adresi ve resmi iletişim bilgileri işletme tarafından yayına alma öncesi tanımlanacaktır.</p>
             </div>
           </section>
 
@@ -47,7 +59,7 @@ export default function KvkkPage() {
               <li><strong>Kimlik Bilgisi:</strong> Adınız ve soyadınız</li>
               <li><strong>İletişim Bilgileri:</strong> Telefon numaranız ve (varsa) e-posta adresiniz</li>
               <li><strong>Lokasyon Bilgisi:</strong> Bulunduğunuz şehir (lojistik ve teslimat değerlendirmesi amacıyla)</li>
-              <li><strong>Talep & İletişim Detayları:</strong> Seçilen mobilya kategorisi, ölçü tercihleri (en, boy, derinlik), renk/malzeme tercihleri ve talebinize ilişkin ilettiğiniz özel notlar</li>
+              <li><strong>Talep &amp; İletişim Detayları:</strong> Seçilen mobilya kategorisi, ölçü tercihleri (en, boy, derinlik), renk/malzeme tercihleri ve talebinize ilişkin ilettiğiniz özel notlar</li>
               <li><strong>Sipariş İşlem Bilgisi:</strong> Benzersiz sipariş takip numaranız ve durum geçmişiniz</li>
             </ul>
           </section>
@@ -72,7 +84,7 @@ export default function KvkkPage() {
               4. Kişisel Verilerin İşlenme Hukuki Sebepleri
             </h2>
             <p className="text-[#504441]">
-              Kişisel verileriniz, KVKK&apos;nın 5. maddesinin 2. fıkrasında yer alan şu hukuki sebeplere dayanılarak işlenmektedir (Hukuki sebepler production öncesi hukuk danışmanı teyidinden geçecektir):
+              Kişisel verileriniz, KVKK&apos;nın 5. maddesinin 2. fıkrasında yer alan şu hukuki sebeplere dayanılarak işlenmektedir:
             </p>
             <ul className="list-disc pl-5 space-y-1 text-[#504441] mt-2">
               <li><strong>c)</strong> Bir sözleşmenin kurulması veya ifasıyla doğrudan doğruya ilgili olması kaydıyla, sözleşmenin taraflarına ait kişisel verilerin işlenmesinin gerekli olması (Özel üretim teklif ve sipariş süreci)</li>
@@ -87,7 +99,7 @@ export default function KvkkPage() {
               5. Kişisel Verilerin Aktarılması
             </h2>
             <p className="text-[#504441]">
-              Toplanan kişisel verileriniz; üçüncü taraf reklam veya pazarlama şirketleriyle **asla paylaşılmamaktadır**. Verileriniz yalnızca kanunen yetkili kamu kurum ve kuruluşlarına yasal zorunluluklar halinde veya teslimat sürecinin yürütülmesi amacıyla lojistik/kargo tedarikçilerine aktarılabilir.
+              Toplanan kişisel verileriniz; üçüncü taraf reklam veya pazarlama şirketleriyle **asla paylaşılmamaktadır**. Verileriniz yalnızca kanunen yetkili kamu kurum ve kuruluşlarına yasal zorunluluklar halinde veya teslimat sürecinin yürütülmesi amacıyla lojistik tedarikçilerine aktarılabilir.
             </p>
           </section>
 

@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="contactBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fdfbf9"/>
+      <stop offset="100%" stop-color="#f2ece6"/>
+    </linearGradient>
+    <filter id="cShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#442a22" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+
+  <rect width="600" height="500" rx="16" fill="url(#contactBg)"/>
+
+  <!-- Atelier Storefront / Workshop Facade Vector -->
+  <g filter="url(#cShadow)" transform="translate(100, 80)">
+    <!-- Main Atelier Building Shape -->
+    <polygon points="200,40 370,110 370,320 30,320 30,110" fill="#fcf9f8" stroke="#d4c3be" stroke-width="1.5"/>
+    <!-- Roof with Timber Overhang -->
+    <polygon points="200,20 390,105 370,120 200,45 30,120 10,105" fill="#442a22"/>
+    
+    <!-- Large Glass Workshop Window with Timber Mullions -->
+    <rect x="60" y="140" width="120" height="130" rx="4" fill="#edf4f8" stroke="#693d2f" stroke-width="3"/>
+    <line x1="120" y1="140" x2="120" y2="270" stroke="#693d2f" stroke-width="2"/>
+    <line x1="60" y1="205" x2="180" y2="205" stroke="#693d2f" stroke-width="2"/>
+    
+    <!-- Woodworking table silhouette visible through window -->
+    <rect x="75" y="220" width="90" height="8" fill="#a47864"/>
+    <line x1="90" y1="228" x2="85" y2="265" stroke="#754735" stroke-width="3"/>
+    <line x1="150" y1="228" x2="155" y2="265" stroke="#754735" stroke-width="3"/>
+
+    <!-- Crafted Atelier Door -->
+    <rect x="220" y="140" width="110" height="180" rx="4" fill="#5a3325" stroke="#3b221a" stroke-width="2"/>
+    <!-- Door Panels -->
+    <rect x="235" y="155" width="80" height="65" rx="2" fill="#754735"/>
+    <rect x="235" y="235" width="80" height="70" rx="2" fill="#754735"/>
+    <!-- Brass Handle -->
+    <circle cx="245" cy="230" r="4" fill="#d4af37"/>
+
+    <!-- Wooden Workshop Sign above Door -->
+    <rect x="130" y="80" width="140" height="32" rx="4" fill="#442a22"/>
+    <text x="200" y="100" font-family="serif" font-size="11" font-weight="600" fill="#fdfbf9" text-anchor="middle" letter-spacing="1">MOBİLYA ATÖLYESİ</text>
+  </g>
+</svg>

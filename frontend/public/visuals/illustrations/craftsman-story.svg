@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">
+  <defs>
+    <linearGradient id="storyBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fdfbf9"/>
+      <stop offset="100%" stop-color="#f2ebe5"/>
+    </linearGradient>
+    <linearGradient id="woodSlab" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#5a3325"/>
+      <stop offset="50%" stop-color="#7a4635"/>
+      <stop offset="100%" stop-color="#5a3325"/>
+    </linearGradient>
+    <linearGradient id="benchWood" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#d9c2b0"/>
+      <stop offset="100%" stop-color="#bda08c"/>
+    </linearGradient>
+    <linearGradient id="steelBlade" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f0f4f8"/>
+      <stop offset="100%" stop-color="#94a3b8"/>
+    </linearGradient>
+    <filter id="dropShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#442a22" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="600" rx="16" fill="url(#storyBg)"/>
+
+  <!-- Atmosphere circle -->
+  <circle cx="400" cy="300" r="220" fill="#ede4dc" opacity="0.6"/>
+
+  <!-- Workbench Surface -->
+  <g filter="url(#dropShadow)">
+    <polygon points="100,380 700,380 740,430 60,430" fill="url(#benchWood)"/>
+    <polygon points="60,430 740,430 740,455 60,455" fill="#a4846f"/>
+    <!-- Bench Legs -->
+    <rect x="120" y="455" width="40" height="120" fill="#694d3c"/>
+    <rect x="640" y="455" width="40" height="120" fill="#694d3c"/>
+    <rect x="120" y="520" width="560" height="20" fill="#52392b"/>
+  </g>
+
+  <!-- Solid Walnut Wood Slab Being Hand-Planed -->
+  <g filter="url(#dropShadow)">
+    <polygon points="160,320 540,320 570,360 130,360" fill="url(#woodSlab)"/>
+    <polygon points="130,360 570,360 570,380 130,380" fill="#3d2117"/>
+    <!-- Wood grain on the working slab -->
+    <path d="M 180,335 Q 350,345 520,335" stroke="#965b47" stroke-width="2" fill="none" opacity="0.7"/>
+    <path d="M 150,350 Q 350,358 550,350" stroke="#3d2117" stroke-width="1.5" fill="none" opacity="0.6"/>
+  </g>
+
+  <!-- Traditional Wooden Hand Plane (Rende) -->
+  <g filter="url(#dropShadow)" transform="translate(320, 240)">
+    <!-- Plane Body -->
+    <path d="M 20,70 L 160,70 L 180,45 L 20,45 Z" fill="#63392b"/>
+    <rect x="10" y="70" width="180" height="25" rx="3" fill="#44251a"/>
+    <!-- Handles (Tote and Horn) -->
+    <path d="M 140,45 Q 160,10 150,-5 Q 135,10 130,45 Z" fill="#351a11"/>
+    <path d="M 35,45 Q 25,25 35,15 Q 45,25 45,45 Z" fill="#351a11"/>
+    <!-- Cutting Iron / Blade & Brass Lever Cap -->
+    <polygon points="80,10 100,10 115,70 95,70" fill="url(#steelBlade)"/>
+    <polygon points="85,30 105,30 110,55 90,55" fill="#d4af37"/>
+  </g>
+
+  <!-- Wood Shavings (Talaş / Kıvrım) -->
+  <g stroke="#d9b68c" stroke-width="3" fill="none" stroke-linecap="round">
+    <path d="M 450,310 Q 470,285 460,265 Q 445,250 435,270 Q 445,290 470,280"/>
+    <path d="M 490,325 Q 515,300 500,285 Q 485,275 480,295"/>
+    <path d="M 270,355 Q 290,340 280,330"/>
+    <path d="M 520,360 Q 545,345 540,335"/>
+  </g>
+
+  <!-- Vintage Brass Try Square & Joinery Marking Tools -->
+  <g transform="translate(560, 310)" filter="url(#dropShadow)">
+    <!-- Wooden Stock with Brass Trim -->
+    <rect x="20" y="30" width="22" height="70" rx="2" fill="#522f23"/>
+    <rect x="20" y="30" width="22" height="6" fill="#d4af37"/>
+    <!-- Steel Blade -->
+    <rect x="42" y="30" width="90" height="18" fill="url(#steelBlade)"/>
+  </g>
+
+  <!-- Chisel in Wooden Stand -->
+  <g transform="translate(200, 290)">
+    <polygon points="20,80 30,80 26,10 24,10" fill="url(#steelBlade)"/>
+    <rect x="21" y="-30" width="8" height="40" rx="3" fill="#8c5845"/>
+    <rect x="19" y="8" width="12" height="4" fill="#d4af37"/>
+  </g>
+
+  <!-- Top Stamp / Badge: "Zanaat & Masif Ahşap" -->
+  <g transform="translate(300, 60)">
+    <rect x="0" y="0" width="200" height="38" rx="19" fill="#ffffff" fill-opacity="0.95" stroke="#d4c3be" stroke-width="1"/>
+    <text x="100" y="24" font-family="serif" font-size="13" font-weight="600" fill="#442a22" text-anchor="middle" letter-spacing="1">EL İŞÇİLİĞİ &amp; TUTKU</text>
+  </g>
+</svg>

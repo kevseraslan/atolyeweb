@@ -10,15 +10,13 @@ interface ProductCardProps {
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
-  const fallbackImage =
-    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='600' viewBox='0 0 800 600'><rect width='100%' height='100%' fill='%23f0eded'/><text x='50%' y='50%' font-family='serif' font-size='24' fill='%23442a22' text-anchor='middle' dy='.3em'>Özel Mobilya Atölyesi</text></svg>";
-
+  const fallbackImage = "/visuals/placeholders/product-default.svg";
   const imageUrl = product.primary_image?.secure_url || fallbackImage;
-  const isDataUri = imageUrl.startsWith("data:");
+  const isDataUri = imageUrl.startsWith("data:") || imageUrl.endsWith(".svg");
 
   return (
-    <article className="hover-lift group flex flex-col bg-[#fcf9f8] rounded border border-[#e5e2e1] overflow-hidden">
-      <div className="relative w-full aspect-[4/3] bg-[#f6f3f2] overflow-hidden">
+    <article className="hover-lift group flex flex-col bg-[#fcf9f8] rounded-xl border border-[#e5e2e1] overflow-hidden transition-all duration-300 hover:shadow-md">
+      <div className="relative w-full aspect-[4/3] bg-[#f6f3f2] overflow-hidden border-b border-[#e5e2e1]">
         <Image
           src={imageUrl}
           alt={product.primary_image?.alt_text || product.name}

@@ -1,6 +1,6 @@
-/* eslint-disable @next/next/no-img-element */
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getProductBySlug } from "@/features/products/api";
@@ -68,10 +68,11 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
 
   const siteUrl = getSiteUrl();
   const pageUrl = `${siteUrl}/urunler/${product.slug}`;
-  const fallbackImage = `${siteUrl}/opengraph-default.svg`;
+  const fallbackImage = "/visuals/placeholders/product-default.svg";
 
   const primaryImg = product.images.find((img) => img.is_primary) || product.images[0];
   const mainImageUrl = primaryImg?.secure_url || fallbackImage;
+  const isDataUri = mainImageUrl.startsWith("data:") || mainImageUrl.endsWith(".svg");
 
   // Strict Product JSON-LD without fake prices, offers, stock or ratings
   const productJsonLd = {
@@ -145,11 +146,15 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
         <div className="flex flex-col lg:flex-row gap-16">
           {/* Left: Product Images Gallery */}
           <div className="w-full lg:w-1/2 flex flex-col gap-4">
-            <div className="w-full aspect-[4/3] bg-[#f0eded] relative overflow-hidden rounded shadow-sm">
-              <img
+            <div className="w-full aspect-[4/3] bg-[#f6f3f2] relative overflow-hidden rounded-2xl border border-[#e5e2e1] shadow-sm">
+              <Image
                 src={mainImageUrl}
                 alt={primaryImg?.alt_text || product.name}
-                className="w-full h-full object-cover"
+                fill
+                priority
+                unoptimized={isDataUri}
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover"
               />
             </div>
             {product.images.length > 1 && (
@@ -157,12 +162,14 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                 {product.images.map((img) => (
                   <div
                     key={img.id}
-                    className="aspect-square bg-[#f0eded] rounded overflow-hidden shadow-sm"
+                    className="aspect-square bg-[#f6f3f2] rounded-xl overflow-hidden border border-[#e5e2e1] relative shadow-sm"
                   >
-                    <img
+                    <Image
                       src={img.secure_url}
                       alt={img.alt_text || product.name}
-                      className="w-full h-full object-cover"
+                      fill
+                      sizes="(max-width: 1024px) 25vw, 12vw"
+                      className="object-cover"
                     />
                   </div>
                 ))}
@@ -195,7 +202,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                   <h4 className="text-xs font-semibold text-[#504441] uppercase tracking-widest mb-3">
                     Varsayılan Ölçüler (cm)
                   </h4>
-                  <div className="grid grid-cols-3 gap-4 bg-[#f6f3f2] p-4 rounded text-center">
+                  <div className="grid grid-cols-3 gap-4 bg-[#f6f3f2] p-4 rounded-xl border border-[#e5e2e1] text-center">
                     <div>
                       <span className="text-[10px] uppercase text-[#827470] block">Genişlik</span>
                       <span className="font-semibold text-sm text-[#442a22]">
@@ -222,13 +229,13 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
               {product.colors && product.colors.length > 0 && (
                 <div className="border-t border-[#e5e2e1] pt-6 mb-6">
                   <h4 className="text-xs font-semibold text-[#504441] uppercase tracking-widest mb-3">
-                    Mevcut Renk & Cila Seçenekleri
+                    Mevcut Renk &amp; Cila Seçenekleri
                   </h4>
                   <div className="flex flex-wrap gap-3">
                     {product.colors.map((c) => (
                       <span
                         key={c.id}
-                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#f6f3f2] rounded text-xs font-medium text-[#1b1c1c] border border-[#d4c3be]"
+                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#f6f3f2] rounded-lg text-xs font-medium text-[#1b1c1c] border border-[#d4c3be]"
                       >
                         {c.hex_code && (
                           <span
@@ -253,7 +260,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                     {product.materials.map((m) => (
                       <span
                         key={m.id}
-                        className="px-3 py-1.5 bg-[#f0eded] rounded text-xs font-medium text-[#442a22]"
+                        className="px-3 py-1.5 bg-[#f0eded] rounded-lg text-xs font-medium text-[#442a22] border border-[#d4c3be]"
                       >
                         {m.name}
                       </span>
@@ -266,8 +273,8 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
             {/* Custom Order CTA */}
             <div className="pt-6 border-t border-[#e5e2e1] flex flex-col gap-3">
               <Link href="/ozel-siparis" className="w-full">
-                <Button variant="primary" size="lg" className="w-full">
-                  Bu Ürün İçin Sipariş Oluştur
+                <Button variant="primary" size="lg" className="w-full py-4 text-base">
+                  Bu Ürün İçin Özel Sipariş / Teklif Oluştur
                 </Button>
               </Link>
             </div>
