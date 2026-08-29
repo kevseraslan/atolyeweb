@@ -60,10 +60,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node.js 20
+      - name: Set up Node.js 24
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: "24"
           cache: "npm"
 
       - name: Install Dependencies
@@ -80,3 +80,110 @@ jobs:
         run: |
           cd frontend
           npm run build
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-build]
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: furniture_workshop_test
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Install Backend Dependencies
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Database Migrations
+        env:
+          DATABASE_URL: postgresql+asyncpg://test_user:test_password@localhost:5432/furniture_workshop_test
+          AUTH_SECRET: test_secret_key_minimum_32_characters_for_ci_build
+        run: |
+          cd backend
+          alembic upgrade head
+
+      - name: Start FastAPI Backend Server
+        env:
+          DATABASE_URL: postgresql+asyncpg://test_user:test_password@localhost:5432/furniture_workshop_test
+          AUTH_SECRET: test_secret_key_minimum_32_characters_for_ci_build
+          APP_ENV: test
+        run: |
+          cd backend
+          python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 &
+
+      - name: Poll Backend Health Readiness
+        run: |
+          for i in {1..30}; do
+            if curl -s http://127.0.0.1:8000/api/v1/health/ready | grep -q "ready"; then
+              echo "Backend is ready!"
+              break
+            fi
+            echo "Waiting for backend..."
+            sleep 1
+          done
+
+      - name: Install Frontend Dependencies & Playwright Browsers
+        run: |
+          cd frontend
+          npm ci
+          npx playwright install chromium --with-deps
+
+      - name: Build and Start Production Next.js Server
+        env:
+          NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3000
+          NEXT_PUBLIC_SITE_INDEXABLE: "false"
+        run: |
+          cd frontend
+          npm run build
+          npm run start -- -p 3000 &
+
+      - name: Poll Frontend Server Readiness
+        run: |
+          for i in {1..30}; do
+            if curl -s -I http://127.0.0.1:3000 | grep -q "200"; then
+              echo "Frontend is ready!"
+              break
+            fi
+            echo "Waiting for frontend..."
+            sleep 1
+          done
+
+      - name: Run Playwright E2E Suite
+        env:
+          PLAYWRIGHT_TEST_BASE_URL: http://127.0.0.1:3000
+        run: |
+          cd frontend
+          npm run test:e2e
+
+      - name: Upload Playwright Artifacts on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          retire-after: 7
