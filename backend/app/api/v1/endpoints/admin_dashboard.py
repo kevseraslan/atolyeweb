@@ -17,19 +17,19 @@ async def get_admin_dashboard_summary(
     current_admin: Admin = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ) -> Dict[str, Any]:
-    # Active & Total Products
-    prod_stmt = select(func.count()).select_from(Product)
-    total_products = (await db.execute(prod_stmt)).scalar() or 0
+    # 1. Total products count
+    total_products = (await db.execute(select(func.count()).select_from(Product))).scalar() or 0
 
-    # Orders count by status
-    status_counts: Dict[str, int] = {}
-    for st in OrderStatus:
-        st_stmt = select(func.count()).select_from(Order).where(Order.status == st.value)
-        cnt = (await db.execute(st_stmt)).scalar() or 0
-        status_counts[st.value] = cnt
+    # 2. Status counts in a SINGLE GROUP BY query (optimized from N queries to 1 query)
+    status_stmt = select(Order.status, func.count(Order.id)).group_by(Order.status)
+    status_results = (await db.execute(status_stmt)).all()
 
-    total_orders_stmt = select(func.count()).select_from(Order)
-    total_orders = (await db.execute(total_orders_stmt)).scalar() or 0
+    status_counts: Dict[str, int] = {st.value: 0 for st in OrderStatus}
+    total_orders = 0
+    for st_val, cnt in status_results:
+        if st_val in status_counts:
+            status_counts[st_val] = cnt
+        total_orders += cnt
 
     return {
         "total_products": total_products,

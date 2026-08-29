@@ -18,12 +18,22 @@ export async function fetchServerApi<T>(
     ...(options.headers || {}),
   };
 
+  // Enforce 5-second timeout for server-side fetches to avoid hanging renders
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+  // If cache: "no-store" is requested, do not attach next revalidate option
+  const fetchNextOption = options.cache === "no-store" ? undefined : (options.next || { revalidate: 60 });
+
   try {
     const response = await fetch(url, {
       ...options,
       headers,
-      next: options.next || { revalidate: 60 },
+      signal: options.signal || controller.signal,
+      ...(fetchNextOption ? { next: fetchNextOption } : {}),
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
@@ -44,8 +54,12 @@ export async function fetchServerApi<T>(
 
     return (await response.json()) as T;
   } catch (error) {
+    clearTimeout(timeoutId);
     if (error instanceof ApiError) {
       throw error;
+    }
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new ApiError("Server-side fetch timed out after 5s", "TIMEOUT_ERROR", 504);
     }
     throw new ApiError(
       error instanceof Error ? error.message : "Server fetch error",

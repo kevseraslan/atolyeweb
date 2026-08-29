@@ -21,6 +21,25 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
         response.headers["X-Request-ID"] = request_id
         return response
 
+class SensitiveCacheControlMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        path = request.url.path
+
+        # Sensitive paths or mutating HTTP methods MUST NOT be cached
+        if (
+            path.startswith("/api/v1/admin")
+            or path.startswith("/api/v1/orders/track")
+            or request.method in ["POST", "PUT", "PATCH", "DELETE"]
+        ):
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            response.headers["Pragma"] = "no-cache"
+        elif request.method == "GET" and (path.startswith("/api/v1/products") or path.startswith("/api/v1/site-settings")):
+            # Public catalog data can be cached for short duration
+            response.headers["Cache-Control"] = "public, max-age=60"
+
+        return response
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info(f"Starting {settings.APP_NAME} ({settings.APP_ENV})...")
@@ -39,6 +58,7 @@ app = FastAPI(
 
 # Middlewares
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(SensitiveCacheControlMiddleware)
 app.add_middleware(RequestIdMiddleware)
 
 app.add_middleware(

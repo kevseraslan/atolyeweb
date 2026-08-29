@@ -25,6 +25,8 @@ router = APIRouter()
 async def list_admin_orders(
     status_filter: Optional[str] = Query(None, alias="status"),
     search: Optional[str] = Query(None),
+    limit: int = Query(100, ge=1, le=200),
+    offset: int = Query(0, ge=0),
     current_admin: Admin = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ) -> List[AdminOrderDetailRead]:
@@ -48,6 +50,8 @@ async def list_admin_orders(
                 Order.phone.ilike(s),
             )
         )
+
+    stmt = stmt.offset(offset).limit(limit)
 
     res = await db.execute(stmt)
     orders = res.scalars().all()
