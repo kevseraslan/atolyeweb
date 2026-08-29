@@ -5,8 +5,10 @@ import logging
 import phonenumbers
 from typing import Optional
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.exceptions import (
     AppException,
     BadRequestException,
@@ -24,7 +26,7 @@ from app.schemas.order import OrderCreate, OrderCreatedResponse
 
 logger = logging.getLogger("app.order_service")
 
-TRACKING_PREFIX = "ATL"
+TRACKING_PREFIX = getattr(settings, "TRACKING_PREFIX", "ATL")
 ALPHANUM = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"  # Excludes confusing characters O, I, 0, 1
 
 def generate_tracking_number() -> str:
@@ -52,24 +54,28 @@ class OrderService:
     ) -> OrderCreatedResponse:
         customer_name = data.customer_name.strip()
         city = data.city.strip()
-        custom_note = data.custom_note.strip() if data.custom_note else None
-        custom_product_name = data.custom_product_name.strip() if data.custom_product_name else None
+        custom_note = data.custom_note.strip() if data.custom_note and data.custom_note.strip() else None
+        custom_product_name = data.custom_product_name.strip() if data.custom_product_name and data.custom_product_name.strip() else None
 
-        # 1. Normalize Phone & Validate Email
+        # 1. Normalize Phone & Email
         normalized_phone = normalize_phone_number(data.phone)
         email: Optional[str] = None
-        if data.email:
-            email = data.email.strip().lower()
-            if "@" not in email or "." not in email:
+        if data.email and data.email.strip():
+            raw_email = data.email.strip().lower()
+            if "@" not in raw_email or "." not in raw_email or raw_email.startswith("@") or raw_email.endswith("@"):
                 raise BadRequestException(
                     message="Lütfen geçerli bir e-posta adresi giriniz.",
                     code="INVALID_EMAIL",
                 )
+            email = raw_email
 
-        # 2. Product Selection Check (Catalog vs Custom)
-        if not data.product_id and not custom_product_name:
+        # 2. Product Selection XOR Check (Catalog vs Custom)
+        has_catalog = data.product_id is not None
+        has_custom = custom_product_name is not None
+
+        if (has_catalog and has_custom) or (not has_catalog and not has_custom):
             raise BadRequestException(
-                message="Lütfen bir katalog ürünü seçin veya özel ürün adı girin.",
+                message="Lütfen bir katalog ürünü seçin VEYA özel ürün adı girin.",
                 code="INVALID_PRODUCT_SELECTION",
             )
 
@@ -77,7 +83,7 @@ class OrderService:
         snapshot_color_name: Optional[str] = None
         snapshot_material_name: Optional[str] = None
 
-        # 3. Product & Active State Validation
+        # 3. Product & Active State Validation (for Catalog request)
         if data.product_id:
             stmt = (
                 select(Product)
@@ -95,7 +101,7 @@ class OrderService:
                 )
             snapshot_product_name = product.name
 
-        # 4. Color Validation & Relationship Check
+        # 4. Color Validation
         if data.color_id:
             col_stmt = select(Color).where(Color.id == data.color_id).where(Color.is_active == True)
             col_res = await db.execute(col_stmt)
@@ -106,7 +112,7 @@ class OrderService:
                     code="INVALID_COLOR",
                 )
 
-            # If catalog product, verify product_color relation
+            # Check product_color relation only for catalog request
             if data.product_id:
                 pc_stmt = (
                     select(ProductColor)
@@ -121,7 +127,7 @@ class OrderService:
                     )
             snapshot_color_name = color.name
 
-        # 5. Material Validation & Relationship Check
+        # 5. Material Validation
         if data.material_id:
             mat_stmt = select(Material).where(Material.id == data.material_id).where(Material.is_active == True)
             mat_res = await db.execute(mat_stmt)
@@ -132,7 +138,7 @@ class OrderService:
                     code="INVALID_MATERIAL",
                 )
 
-            # If catalog product, verify product_material relation
+            # Check product_material relation only for catalog request
             if data.product_id:
                 pm_stmt = (
                     select(ProductMaterial)
@@ -147,71 +153,73 @@ class OrderService:
                     )
             snapshot_material_name = material.name
 
-        # 6. Generate Unique Tracking Number (Collision retry up to 5 attempts)
-        tracking_number = ""
+        # 6. Retry Loop for Tracking Number Creation & DB Commit
         for attempt in range(5):
-            candidate = generate_tracking_number()
-            chk_stmt = select(Order.id).where(Order.tracking_number == candidate)
-            chk_res = await db.execute(chk_stmt)
-            if not chk_res.scalar_one_or_none():
-                tracking_number = candidate
-                break
+            tracking_number = generate_tracking_number()
+            try:
+                async with db.begin_nested():
+                    order = Order(
+                        tracking_number=tracking_number,
+                        product_id=data.product_id,
+                        color_id=data.color_id,
+                        material_id=data.material_id,
+                        snapshot_product_name=snapshot_product_name,
+                        snapshot_color_name=snapshot_color_name,
+                        snapshot_material_name=snapshot_material_name,
+                        custom_product_name=custom_product_name,
+                        requested_width=data.requested_width,
+                        requested_height=data.requested_height,
+                        requested_depth=data.requested_depth,
+                        custom_note=custom_note,
+                        quantity=data.quantity,
+                        customer_name=customer_name,
+                        phone=normalized_phone,
+                        email=email,
+                        city=city,
+                        status=OrderStatus.RECEIVED.value,
+                    )
+                    db.add(order)
+                    await db.flush()
 
-        if not tracking_number:
-            raise AppException(
-                message="Sipariş takip numarası oluşturulamadı, lütfen tekrar deneyin.",
-                code="TRACKING_COLLISION",
-                status_code=500,
-            )
+                    history = OrderStatusHistory(
+                        order_id=order.id,
+                        old_status=None,
+                        new_status=OrderStatus.RECEIVED.value,
+                        note="Yeni sipariş talebi başarıyla oluşturuldu.",
+                    )
+                    db.add(history)
 
-        # 7. Atomic DB Transaction (Order + Initial History)
-        order = Order(
-            tracking_number=tracking_number,
-            product_id=data.product_id,
-            color_id=data.color_id,
-            material_id=data.material_id,
-            snapshot_product_name=snapshot_product_name,
-            snapshot_color_name=snapshot_color_name,
-            snapshot_material_name=snapshot_material_name,
-            custom_product_name=custom_product_name,
-            requested_width=data.requested_width,
-            requested_height=data.requested_height,
-            requested_depth=data.requested_depth,
-            custom_note=custom_note,
-            quantity=data.quantity,
-            customer_name=customer_name,
-            phone=normalized_phone,
-            email=email,
-            city=city,
-            status=OrderStatus.RECEIVED.value,
-        )
+                await db.commit()
+                await db.refresh(order)
 
-        db.add(order)
-        await db.flush()  # Generates order.id for history relation
+                return OrderCreatedResponse(
+                    tracking_number=order.tracking_number,
+                    status=order.status,
+                    created_at=order.created_at,
+                    message="Talebiniz başarıyla alındı. Müşteri temsilcimiz sizinle en kısa sürede iletişime geçecektir.",
+                )
+            except IntegrityError as exc:
+                await db.rollback()
+                if "tracking_number" in str(exc).lower() or "unique" in str(exc).lower():
+                    logger.warning(f"Tracking number collision on attempt {attempt + 1}: {exc}")
+                    continue
+                logger.error(f"IntegrityError creating order: {exc}")
+                raise AppException(
+                    message="Sipariş talebi kaydedilemedi.",
+                    code="ORDER_SAVE_FAILED",
+                    status_code=500,
+                )
+            except Exception as exc:
+                await db.rollback()
+                logger.error(f"Failed to commit order: {exc}")
+                raise AppException(
+                    message="Sipariş talebi kaydedilemedi.",
+                    code="ORDER_SAVE_FAILED",
+                    status_code=500,
+                )
 
-        history = OrderStatusHistory(
-            order_id=order.id,
-            old_status=None,
-            new_status=OrderStatus.RECEIVED.value,
-            note="Yeni sipariş talebi başarıyla oluşturuldu.",
-        )
-        db.add(history)
-
-        try:
-            await db.commit()
-            await db.refresh(order)
-        except Exception as exc:
-            await db.rollback()
-            logger.error(f"Failed to commit order: {exc}")
-            raise AppException(
-                message="Sipariş talebi kaydedilemedi.",
-                code="ORDER_SAVE_FAILED",
-                status_code=500,
-            )
-
-        return OrderCreatedResponse(
-            tracking_number=order.tracking_number,
-            status=order.status,
-            created_at=order.created_at,
-            message="Talebiniz başarıyla alındı. Müşteri temsilcimiz sizinle en kısa sürede iletişime geçecektir.",
+        raise AppException(
+            message="Sipariş takip numarası oluşturulamadı, lütfen tekrar deneyin.",
+            code="TRACKING_COLLISION",
+            status_code=500,
         )

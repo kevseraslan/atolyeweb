@@ -21,7 +21,7 @@ class OrderCreate(BaseModel):
     email: Optional[str] = Field(None, max_length=120)
     city: str = Field(..., min_length=2, max_length=50)
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(extra="forbid", from_attributes=True)
 
 class OrderCreatedResponse(BaseModel):
     tracking_number: str
