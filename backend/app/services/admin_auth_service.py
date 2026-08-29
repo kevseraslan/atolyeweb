@@ -20,7 +20,7 @@ from app.models.admin import Admin
 logger = logging.getLogger("app.admin_auth_service")
 
 ph = PasswordHasher()
-SECRET_KEY = settings.AUTH_SECRET if settings.AUTH_SECRET else "artisan_woodworks_secret_auth_key_2026"
+SECRET_KEY = settings.AUTH_SECRET
 ALGORITHM = "HS256"
 COOKIE_NAME = "admin_session"
 TOKEN_EXPIRE_HOURS = 8
@@ -80,14 +80,15 @@ class AdminAuthService:
         await db.commit()
 
         token = create_admin_token(admin)
+        is_prod = settings.APP_ENV == "production"
 
-        # Set HttpOnly, SameSite cookie
+        # Set HttpOnly, SameSite cookie (Secure in Production)
         response.set_cookie(
             key=COOKIE_NAME,
             value=token,
             httponly=True,
             samesite="lax",
-            secure=False,  # Can be True in production TLS
+            secure=is_prod,
             path="/",
             max_age=TOKEN_EXPIRE_HOURS * 3600,
         )
@@ -101,7 +102,14 @@ class AdminAuthService:
 
     @staticmethod
     def logout(response: Response) -> dict:
-        response.delete_cookie(key=COOKIE_NAME, path="/")
+        is_prod = settings.APP_ENV == "production"
+        response.delete_cookie(
+            key=COOKIE_NAME,
+            path="/",
+            httponly=True,
+            samesite="lax",
+            secure=is_prod,
+        )
         return {"message": "Oturum başarıyla kapatıldı."}
 
 async def get_current_admin(

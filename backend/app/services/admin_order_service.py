@@ -58,7 +58,7 @@ class AdminOrderService:
         if new_status == old_status:
             return order
 
-        # Atomic Status Update + History Insert
+        # Atomic Status Update + History Insert with server-side admin_id
         order.status = new_status
         history = OrderStatusHistory(
             order_id=order.id,
@@ -76,6 +76,7 @@ class AdminOrderService:
     async def update_price(
         db: AsyncSession,
         order_id: int,
+        admin_id: int,
         quoted_price: Optional[float] = None,
         approved_price: Optional[float] = None,
     ) -> Order:
@@ -86,10 +87,26 @@ class AdminOrderService:
             raise NotFoundException(f"ID'si {order_id} olan sipariş bulunamadı.")
 
         if quoted_price is not None:
+            if quoted_price <= 0:
+                raise BadRequestException("Teklif fiyatı 0'dan büyük olmalıdır.", code="INVALID_PRICE")
             order.quoted_price = quoted_price
             order.quoted_at = datetime.datetime.now(datetime.timezone.utc)
 
+            # Automatically advance status to QUOTED if currently in CONTACTED or UNDER_REVIEW
+            if order.status in [OrderStatus.UNDER_REVIEW.value, OrderStatus.CONTACTED.value]:
+                old_st = order.status
+                order.status = OrderStatus.QUOTED.value
+                db.add(OrderStatusHistory(
+                    order_id=order.id,
+                    old_status=old_st,
+                    new_status=OrderStatus.QUOTED.value,
+                    changed_by_admin_id=admin_id,
+                    note=f"Teklif fiyatı ({quoted_price} TL) tanımlandı.",
+                ))
+
         if approved_price is not None:
+            if approved_price <= 0:
+                raise BadRequestException("Onaylanan fiyat 0'dan büyük olmalıdır.", code="INVALID_PRICE")
             order.approved_price = approved_price
 
         await db.commit()
@@ -108,6 +125,9 @@ class AdminOrderService:
         order = res.scalar_one_or_none()
         if not order:
             raise NotFoundException(f"ID'si {order_id} olan sipariş bulunamadı.")
+
+        if not note_text or not note_text.strip():
+            raise BadRequestException("Dahili not boş olamaz.", code="EMPTY_NOTE")
 
         admin_note = OrderAdminNote(
             order_id=order.id,

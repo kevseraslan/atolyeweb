@@ -63,14 +63,16 @@ def upgrade() -> None:
     op.create_index(op.f('ix_order_admin_notes_admin_id'), 'order_admin_notes', ['admin_id'], unique=False)
     op.create_index(op.f('ix_order_admin_notes_order_id'), 'order_admin_notes', ['order_id'], unique=False)
 
-    op.create_index(op.f('ix_order_status_history_changed_by_admin_id'), 'order_status_history', ['changed_by_admin_id'], unique=False)
-    op.create_foreign_key('fk_order_status_history_changed_by_admin', 'order_status_history', 'admins', ['changed_by_admin_id'], ['id'], ondelete='SET NULL')
+    with op.batch_alter_table('order_status_history') as batch_op:
+        batch_op.create_index(op.f('ix_order_status_history_changed_by_admin_id'), ['changed_by_admin_id'], unique=False)
+        batch_op.create_foreign_key('fk_order_status_history_changed_by_admin', 'admins', ['changed_by_admin_id'], ['id'], ondelete='SET NULL')
 
 
 def downgrade() -> None:
     """Downgrade schema."""
-    op.drop_constraint('fk_order_status_history_changed_by_admin', 'order_status_history', type_='foreignkey')
-    op.drop_index(op.f('ix_order_status_history_changed_by_admin_id'), table_name='order_status_history')
+    with op.batch_alter_table('order_status_history') as batch_op:
+        batch_op.drop_constraint('fk_order_status_history_changed_by_admin', type_='foreignkey')
+        batch_op.drop_index(op.f('ix_order_status_history_changed_by_admin_id'))
 
     op.drop_index(op.f('ix_order_admin_notes_order_id'), table_name='order_admin_notes')
     op.drop_index(op.f('ix_order_admin_notes_admin_id'), table_name='order_admin_notes')

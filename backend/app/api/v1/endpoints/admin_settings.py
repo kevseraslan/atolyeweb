@@ -10,6 +10,19 @@ from app.services.admin_auth_service import get_current_admin
 
 router = APIRouter()
 
+ALLOWED_SETTINGS_FIELDS = {
+    "workshop_name",
+    "phone",
+    "whatsapp",
+    "email",
+    "address",
+    "working_hours",
+    "google_maps_url",
+    "instagram_url",
+    "hero_title",
+    "about_text",
+}
+
 async def _get_or_create_settings(db: AsyncSession) -> SiteSettings:
     stmt = select(SiteSettings).where(SiteSettings.id == 1)
     res = await db.execute(stmt)
@@ -37,8 +50,9 @@ async def update_admin_site_settings(
 ) -> PublicSiteSettingsRead:
     settings_obj = await _get_or_create_settings(db)
 
-    for field, val in data.model_dump(exclude_unset=True).items():
-        if val is not None:
+    dumped = data.model_dump(exclude_unset=True)
+    for field, val in dumped.items():
+        if field in ALLOWED_SETTINGS_FIELDS and val is not None:
             setattr(settings_obj, field, val)
 
     await db.commit()

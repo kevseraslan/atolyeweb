@@ -11,8 +11,7 @@ class Settings(BaseSettings):
     )
     FRONTEND_URL: str = "http://localhost:3000"
 
-    # Future placeholders (not active in Phase 7)
-    AUTH_SECRET: str = ""
+    AUTH_SECRET: str = "artisan_woodworks_dev_secret_key_2026_change_in_prod"
     CLOUDINARY_CLOUD_NAME: str = ""
     CLOUDINARY_API_KEY: str = ""
     CLOUDINARY_API_SECRET: str = ""
@@ -24,3 +23,7 @@ class Settings(BaseSettings):
     )
 
 settings = Settings()
+
+if settings.APP_ENV == "production":
+    if not settings.AUTH_SECRET or settings.AUTH_SECRET in ["change-me", "secret", "dev-secret", "artisan_woodworks_dev_secret_key_2026_change_in_prod"]:
+        raise RuntimeError("FATAL: AUTH_SECRET must be explicitly set to a strong secret key in production environment!")

@@ -170,6 +170,7 @@ async def update_order_price(
     await AdminOrderService.update_price(
         db=db,
         order_id=order_id,
+        admin_id=current_admin.id,
         quoted_price=float(data.quoted_price) if data.quoted_price is not None else None,
         approved_price=float(data.approved_price) if data.approved_price is not None else None,
     )
