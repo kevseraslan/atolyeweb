@@ -7,20 +7,42 @@ import {
 } from "./types";
 import { ProductListItem, Color, Material, Category } from "@/features/products/types";
 
+let activeCsrfToken: string | null = null;
+
+function getCsrfHeaders(options?: RequestInit): HeadersInit {
+  const headers = new Headers(options?.headers || {});
+  if (activeCsrfToken && options?.method && ["POST", "PATCH", "DELETE", "PUT"].includes(options.method.toUpperCase())) {
+    headers.set("X-CSRF-Token", activeCsrfToken);
+  }
+  return headers;
+}
+
 // Auth
 export async function loginAdmin(email: string, password: string): Promise<AdminUser> {
-  return await fetchClientApi<AdminUser>("/admin/auth/login", {
+  const user = await fetchClientApi<AdminUser>("/admin/auth/login", {
     method: "POST",
     body: JSON.stringify({ email, password }),
   });
+  if (user.csrf_token) {
+    activeCsrfToken = user.csrf_token;
+  }
+  return user;
 }
 
 export async function logoutAdmin(): Promise<void> {
-  await fetchClientApi("/admin/auth/logout", { method: "POST" });
+  await fetchClientApi("/admin/auth/logout", {
+    method: "POST",
+    headers: getCsrfHeaders({ method: "POST" }),
+  });
+  activeCsrfToken = null;
 }
 
 export async function getAdminMe(): Promise<AdminUser> {
-  return await fetchClientApi<AdminUser>("/admin/auth/me");
+  const user = await fetchClientApi<AdminUser>("/admin/auth/me");
+  if (user.csrf_token) {
+    activeCsrfToken = user.csrf_token;
+  }
+  return user;
 }
 
 // Dashboard
@@ -34,7 +56,10 @@ export async function getAdminProducts(): Promise<ProductListItem[]> {
 }
 
 export async function deactivateAdminProduct(productId: number): Promise<void> {
-  await fetchClientApi(`/admin/products/${productId}`, { method: "DELETE" });
+  await fetchClientApi(`/admin/products/${productId}`, {
+    method: "DELETE",
+    headers: getCsrfHeaders({ method: "DELETE" }),
+  });
 }
 
 // Categories
@@ -45,6 +70,7 @@ export async function getAdminCategories(): Promise<Category[]> {
 export async function createAdminCategory(data: Partial<Category>): Promise<Category> {
   return await fetchClientApi<Category>("/admin/categories", {
     method: "POST",
+    headers: getCsrfHeaders({ method: "POST" }),
     body: JSON.stringify(data),
   });
 }
@@ -57,6 +83,7 @@ export async function getAdminColors(): Promise<Color[]> {
 export async function createAdminColor(data: Partial<Color>): Promise<Color> {
   return await fetchClientApi<Color>("/admin/colors", {
     method: "POST",
+    headers: getCsrfHeaders({ method: "POST" }),
     body: JSON.stringify(data),
   });
 }
@@ -69,6 +96,7 @@ export async function getAdminMaterials(): Promise<Material[]> {
 export async function createAdminMaterial(data: Partial<Material>): Promise<Material> {
   return await fetchClientApi<Material>("/admin/materials", {
     method: "POST",
+    headers: getCsrfHeaders({ method: "POST" }),
     body: JSON.stringify(data),
   });
 }
@@ -82,6 +110,7 @@ export async function getAdminOrders(statusFilter?: string): Promise<AdminOrderD
 export async function updateAdminOrderStatus(orderId: number, newStatus: string, note?: string): Promise<void> {
   await fetchClientApi(`/admin/orders/${orderId}/status`, {
     method: "PATCH",
+    headers: getCsrfHeaders({ method: "PATCH" }),
     body: JSON.stringify({ new_status: newStatus, note }),
   });
 }
@@ -89,6 +118,7 @@ export async function updateAdminOrderStatus(orderId: number, newStatus: string,
 export async function updateAdminOrderPrice(orderId: number, quotedPrice?: number, approvedPrice?: number): Promise<void> {
   await fetchClientApi(`/admin/orders/${orderId}/price`, {
     method: "PATCH",
+    headers: getCsrfHeaders({ method: "PATCH" }),
     body: JSON.stringify({ quoted_price: quotedPrice, approved_price: approvedPrice }),
   });
 }
@@ -96,6 +126,7 @@ export async function updateAdminOrderPrice(orderId: number, quotedPrice?: numbe
 export async function addAdminOrderNote(orderId: number, note: string): Promise<void> {
   await fetchClientApi(`/admin/orders/${orderId}/notes`, {
     method: "POST",
+    headers: getCsrfHeaders({ method: "POST" }),
     body: JSON.stringify({ note }),
   });
 }
@@ -108,6 +139,7 @@ export async function getAdminSiteSettings(): Promise<SiteSettingsData> {
 export async function updateAdminSiteSettings(data: Partial<SiteSettingsData>): Promise<SiteSettingsData> {
   return await fetchClientApi<SiteSettingsData>("/admin/settings", {
     method: "PATCH",
+    headers: getCsrfHeaders({ method: "PATCH" }),
     body: JSON.stringify(data),
   });
 }

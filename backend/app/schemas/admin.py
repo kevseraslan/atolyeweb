@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field
 # Auth Schemas
 class AdminLoginRequest(BaseModel):
     email: str = Field(..., min_length=5, max_length=120)
-    password: str = Field(..., min_length=1)
+    password: str = Field(..., min_length=1, max_length=256)
 
     model_config = ConfigDict(extra="forbid")
 
@@ -16,6 +16,7 @@ class AdminRead(BaseModel):
     full_name: str
     role: str
     last_login_at: Optional[datetime] = None
+    csrf_token: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -24,8 +25,8 @@ class AdminProductCreate(BaseModel):
     category_id: int
     name: str = Field(..., min_length=2, max_length=200)
     slug: Optional[str] = Field(None, max_length=220)
-    short_description: Optional[str] = None
-    description: Optional[str] = None
+    short_description: Optional[str] = Field(None, max_length=500)
+    description: Optional[str] = Field(None, max_length=5000)
     default_width: Optional[Decimal] = Field(None, gt=0, le=1000)
     default_height: Optional[Decimal] = Field(None, gt=0, le=1000)
     default_depth: Optional[Decimal] = Field(None, gt=0, le=1000)
@@ -41,8 +42,8 @@ class AdminProductUpdate(BaseModel):
     category_id: Optional[int] = None
     name: Optional[str] = Field(None, min_length=2, max_length=200)
     slug: Optional[str] = Field(None, max_length=220)
-    short_description: Optional[str] = None
-    description: Optional[str] = None
+    short_description: Optional[str] = Field(None, max_length=500)
+    description: Optional[str] = Field(None, max_length=5000)
     default_width: Optional[Decimal] = Field(None, gt=0, le=1000)
     default_height: Optional[Decimal] = Field(None, gt=0, le=1000)
     default_depth: Optional[Decimal] = Field(None, gt=0, le=1000)
@@ -58,7 +59,7 @@ class AdminProductUpdate(BaseModel):
 class AdminCategoryCreateUpdate(BaseModel):
     name: str = Field(..., min_length=2, max_length=100)
     slug: Optional[str] = Field(None, max_length=120)
-    description: Optional[str] = None
+    description: Optional[str] = Field(None, max_length=2000)
     sort_order: int = 0
     is_active: bool = True
 
@@ -74,7 +75,7 @@ class AdminColorCreateUpdate(BaseModel):
 
 class AdminMaterialCreateUpdate(BaseModel):
     name: str = Field(..., min_length=2, max_length=100)
-    description: Optional[str] = None
+    description: Optional[str] = Field(None, max_length=2000)
     sort_order: int = 0
     is_active: bool = True
 
@@ -138,12 +139,12 @@ class SiteSettingsUpdate(BaseModel):
     phone: Optional[str] = Field(None, max_length=30)
     whatsapp: Optional[str] = Field(None, max_length=30)
     email: Optional[str] = Field(None, max_length=120)
-    address: Optional[str] = None
+    address: Optional[str] = Field(None, max_length=2000)
     working_hours: Optional[str] = Field(None, max_length=150)
     google_maps_url: Optional[str] = Field(None, max_length=500)
     instagram_url: Optional[str] = Field(None, max_length=500)
     hero_title: Optional[str] = Field(None, max_length=255)
-    about_text: Optional[str] = None
+    about_text: Optional[str] = Field(None, max_length=5000)
 
     model_config = ConfigDict(extra="forbid")
 

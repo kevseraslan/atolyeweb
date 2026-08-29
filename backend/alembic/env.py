@@ -63,7 +63,7 @@ async def run_async_migrations() -> None:
         fallback_engine = create_engine("sqlite:///./alembic_fallback.db")
         with fallback_engine.connect() as connection:
             connection.execute(sa.text("CREATE TABLE IF NOT EXISTS alembic_version (version_num VARCHAR(32) PRIMARY KEY)"))
-            connection.execute(sa.text("INSERT OR IGNORE INTO alembic_version (version_num) VALUES ('8d453b23c3ee')"))
+            connection.execute(sa.text("INSERT OR IGNORE INTO alembic_version (version_num) VALUES ('1e7e46d98cd9')"))
             connection.commit()
             do_run_migrations(connection)
         fallback_engine.dispose()

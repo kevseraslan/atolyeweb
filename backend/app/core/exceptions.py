@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -16,10 +16,12 @@ class AppException(Exception):
         message: str,
         code: str = "INTERNAL_ERROR",
         status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR,
+        headers: Optional[Dict[str, str]] = None,
     ):
         self.message = message
         self.code = code
         self.status_code = status_code
+        self.headers = headers
         super().__init__(message)
 
 class NotFoundException(AppException):
@@ -55,10 +57,10 @@ class UnauthorizedException(AppException):
         )
 
 class ForbiddenException(AppException):
-    def __init__(self, message: str = "Access denied"):
+    def __init__(self, message: str = "Access denied", code: str = "FORBIDDEN"):
         super().__init__(
             message=message,
-            code="FORBIDDEN",
+            code=code,
             status_code=status.HTTP_403_FORBIDDEN,
         )
 
@@ -74,4 +76,5 @@ async def app_exception_handler(request: Request, exc: AppException) -> JSONResp
     return JSONResponse(
         status_code=exc.status_code,
         content={"error": {"code": exc.code, "message": exc.message}},
+        headers=exc.headers,
     )

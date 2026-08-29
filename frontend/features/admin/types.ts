@@ -4,6 +4,7 @@ export interface AdminUser {
   full_name: string;
   role: string;
   last_login_at?: string | null;
+  csrf_token?: string | null;
 }
 
 export interface AdminDashboardSummary {

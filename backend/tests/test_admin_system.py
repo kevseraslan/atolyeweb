@@ -8,6 +8,7 @@ from app.models.product import Product
 from app.models.enums import OrderStatus
 from app.models.order import Order
 from app.services.admin_auth_service import hash_password, create_admin_token, COOKIE_NAME
+from app.core.csrf import generate_csrf_token
 
 @pytest.mark.anyio
 async def test_admin_auth_flow(async_client, db_session: AsyncSession):
@@ -37,13 +38,14 @@ async def test_admin_auth_flow(async_client, db_session: AsyncSession):
     })
     assert res_wrong_email.status_code == 401
 
-    # 4. Correct login -> 200 + Cookie
+    # 4. Correct login -> 200 + Cookie + CSRF Token
     res_login = await async_client.post("/api/v1/admin/auth/login", json={
         "email": "superadmin@example.com",
         "password": "SuperSecret12345!",
     })
     assert res_login.status_code == 200
     assert COOKIE_NAME in async_client.cookies
+    csrf_token = res_login.json()["csrf_token"]
 
     # 5. Access /admin/auth/me
     res_me = await async_client.get("/api/v1/admin/auth/me")
@@ -52,7 +54,10 @@ async def test_admin_auth_flow(async_client, db_session: AsyncSession):
     assert "password_hash" not in res_me.json()
 
     # 6. Logout
-    res_logout = await async_client.post("/api/v1/admin/auth/logout")
+    res_logout = await async_client.post(
+        "/api/v1/admin/auth/logout",
+        headers={"Origin": "http://localhost:3000", "X-CSRF-Token": csrf_token},
+    )
     assert res_logout.status_code == 200
 
     # 7. Unauthenticated access -> 401
@@ -69,6 +74,7 @@ async def test_admin_order_status_transition_policy(async_client, db_session: As
     await db_session.commit()
 
     token = create_admin_token(admin)
+    csrf_token = generate_csrf_token(admin.id, admin.session_version)
     async_client.cookies.set(COOKIE_NAME, token)
 
     # 2. Create customer order (Status RECEIVED)
@@ -84,30 +90,36 @@ async def test_admin_order_status_transition_policy(async_client, db_session: As
     order = (await db_session.execute(stmt)).scalar_one()
 
     # 3. Invalid Transition: RECEIVED -> IN_PRODUCTION (Must be rejected)
-    res_invalid = await async_client.patch(f"/api/v1/admin/orders/{order.id}/status", json={
-        "new_status": "IN_PRODUCTION",
-        "note": "Erken üretime atlama",
-    })
+    res_invalid = await async_client.patch(
+        f"/api/v1/admin/orders/{order.id}/status",
+        json={"new_status": "IN_PRODUCTION", "note": "Erken üretime atlama"},
+        headers={"Origin": "http://localhost:3000", "X-CSRF-Token": csrf_token},
+    )
     assert res_invalid.status_code == 400
     assert res_invalid.json()["error"]["code"] == "INVALID_STATUS_TRANSITION"
 
     # 4. Valid Transition: RECEIVED -> UNDER_REVIEW
-    res_valid1 = await async_client.patch(f"/api/v1/admin/orders/{order.id}/status", json={
-        "new_status": "UNDER_REVIEW",
-        "note": "Detaylar inceleniyor",
-    })
+    res_valid1 = await async_client.patch(
+        f"/api/v1/admin/orders/{order.id}/status",
+        json={"new_status": "UNDER_REVIEW", "note": "Detaylar inceleniyor"},
+        headers={"Origin": "http://localhost:3000", "X-CSRF-Token": csrf_token},
+    )
     assert res_valid1.status_code == 200
 
     # 5. Set Quoted Price
-    res_price = await async_client.patch(f"/api/v1/admin/orders/{order.id}/price", json={
-        "quoted_price": 18500.50,
-    })
+    res_price = await async_client.patch(
+        f"/api/v1/admin/orders/{order.id}/price",
+        json={"quoted_price": 18500.50},
+        headers={"Origin": "http://localhost:3000", "X-CSRF-Token": csrf_token},
+    )
     assert res_price.status_code == 200
 
     # 6. Add Admin Internal Note
-    res_note = await async_client.post(f"/api/v1/admin/orders/{order.id}/notes", json={
-        "note": "Müşteri özel cila örneği istedi.",
-    })
+    res_note = await async_client.post(
+        f"/api/v1/admin/orders/{order.id}/notes",
+        json={"note": "Müşteri özel cila örneği istedi."},
+        headers={"Origin": "http://localhost:3000", "X-CSRF-Token": csrf_token},
+    )
     assert res_note.status_code == 201
 
     # 7. Verify Public Tracking DOES NOT leak internal notes or quoted price!
@@ -129,14 +141,19 @@ async def test_admin_site_settings(async_client, db_session: AsyncSession):
     await db_session.commit()
 
     token = create_admin_token(admin)
+    csrf_token = generate_csrf_token(admin.id, admin.session_version)
     async_client.cookies.set(COOKIE_NAME, token)
 
     # Patch settings
-    patch_res = await async_client.patch("/api/v1/admin/settings", json={
-        "workshop_name": "Artisan Woodworks Kadıköy",
-        "phone": "0216 123 45 67",
-        "whatsapp": "+905321234567",
-    })
+    patch_res = await async_client.patch(
+        "/api/v1/admin/settings",
+        json={
+            "workshop_name": "Artisan Woodworks Kadıköy",
+            "phone": "0216 123 45 67",
+            "whatsapp": "+905321234567",
+        },
+        headers={"Origin": "http://localhost:3000", "X-CSRF-Token": csrf_token},
+    )
     assert patch_res.status_code == 200
     assert patch_res.json()["workshop_name"] == "Artisan Woodworks Kadıköy"
 

@@ -15,6 +15,7 @@ class Admin(Base):
     full_name: Mapped[str] = mapped_column(String(100), nullable=False)
     role: Mapped[str] = mapped_column(String(30), default="SUPER_ADMIN", nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    session_version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
     last_login_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(

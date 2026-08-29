@@ -16,14 +16,15 @@ from app.core.exceptions import (
     BadRequestException,
 )
 from app.models.admin import Admin
+from app.core.csrf import generate_csrf_token, verify_admin_csrf
 
 logger = logging.getLogger("app.admin_auth_service")
 
 ph = PasswordHasher()
 SECRET_KEY = settings.AUTH_SECRET
 ALGORITHM = "HS256"
-COOKIE_NAME = "admin_session"
-TOKEN_EXPIRE_HOURS = 8
+COOKIE_NAME = "__Host-admin_session" if settings.APP_ENV == "production" else "admin_session"
+TOKEN_EXPIRE_HOURS = 4  # Reduced lifetime from 8h to 4h for optimal UX/Security balance
 
 def hash_password(password: str) -> str:
     return ph.hash(password)
@@ -39,7 +40,7 @@ def create_admin_token(admin: Admin) -> str:
     now = datetime.datetime.now(datetime.timezone.utc)
     payload = {
         "sub": str(admin.id),
-        "email": admin.email,
+        "sv": admin.session_version,
         "role": admin.role,
         "iat": now,
         "exp": now + datetime.timedelta(hours=TOKEN_EXPIRE_HOURS),
@@ -67,6 +68,8 @@ class AdminAuthService:
         admin = res.scalar_one_or_none()
 
         if not admin:
+            # Execute dummy Argon2 verify to mitigate timing attacks against non-existent users
+            verify_password("dummy_password_12345", "$argon2id$v=19$m=65536,t=3,p=4$dummyhash$dummyhash")
             raise generic_unauthorized
 
         if not verify_password(password, admin.password_hash):
@@ -80,9 +83,9 @@ class AdminAuthService:
         await db.commit()
 
         token = create_admin_token(admin)
+        csrf_token = generate_csrf_token(admin.id, admin.session_version)
         is_prod = settings.APP_ENV == "production"
 
-        # Set HttpOnly, SameSite cookie (Secure in Production)
         response.set_cookie(
             key=COOKIE_NAME,
             value=token,
@@ -92,16 +95,26 @@ class AdminAuthService:
             path="/",
             max_age=TOKEN_EXPIRE_HOURS * 3600,
         )
+        response.headers["X-CSRF-Token"] = csrf_token
 
         return {
             "id": admin.id,
             "email": admin.email,
             "full_name": admin.full_name,
             "role": admin.role,
+            "csrf_token": csrf_token,
         }
 
     @staticmethod
-    def logout(response: Response) -> dict:
+    async def logout(
+        db: AsyncSession,
+        admin: Admin,
+        response: Response,
+    ) -> dict:
+        # Invalidate all existing tokens by incrementing session_version in DB
+        admin.session_version += 1
+        await db.commit()
+
         is_prod = settings.APP_ENV == "production"
         response.delete_cookie(
             key=COOKIE_NAME,
@@ -110,7 +123,7 @@ class AdminAuthService:
             samesite="lax",
             secure=is_prod,
         )
-        return {"message": "Oturum başarıyla kapatıldı."}
+        return {"message": "Oturum başarıyla kapatıldı ve geçersiz kılındı."}
 
 async def get_current_admin(
     request: Request,
@@ -127,6 +140,7 @@ async def get_current_admin(
 
     payload = decode_admin_token(token)
     admin_id = int(payload.get("sub", 0))
+    token_sv = payload.get("sv")
 
     stmt = select(Admin).where(Admin.id == admin_id)
     res = await db.execute(stmt)
@@ -137,5 +151,12 @@ async def get_current_admin(
 
     if not admin.is_active:
         raise ForbiddenException("Yönetici hesabı pasife alınmıştır.")
+
+    # Session Revocation Check (Token version MUST match current DB session_version)
+    if token_sv != admin.session_version:
+        raise UnauthorizedException("Oturum sonlandırıldı veya başka bir cihazdan çıkış yapıldı.")
+
+    # Execute CSRF & Origin Validation for state-changing requests
+    verify_admin_csrf(request, admin.id, admin.session_version)
 
     return admin
