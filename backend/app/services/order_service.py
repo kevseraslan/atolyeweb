@@ -296,7 +296,6 @@ class OrderService:
             requested_depth=order.requested_depth,
             color_name=order.snapshot_color_name,
             material_name=order.snapshot_material_name,
-            custom_note=order.custom_note,
             created_at=order.created_at,
             updated_at=order.updated_at,
             history=history_items,

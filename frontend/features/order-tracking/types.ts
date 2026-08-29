@@ -18,7 +18,6 @@ export interface OrderTrackingResponse {
   requested_depth?: number | null;
   color_name?: string | null;
   material_name?: string | null;
-  custom_note?: string | null;
   created_at: string;
   updated_at: string;
   history: OrderTrackingHistoryItem[];

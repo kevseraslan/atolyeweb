@@ -53,7 +53,6 @@ class OrderTrackingResponse(BaseModel):
     requested_depth: Optional[Decimal] = None
     color_name: Optional[str] = None
     material_name: Optional[str] = None
-    custom_note: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     history: List[OrderTrackingHistoryItem]
