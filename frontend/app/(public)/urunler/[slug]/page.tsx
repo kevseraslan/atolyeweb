@@ -1,14 +1,53 @@
 /* eslint-disable @next/next/no-img-element */
 import React from "react";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getProductBySlug } from "@/features/products/api";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { getSiteUrl } from "@/lib/site-url";
 
 interface ProductDetailPageProps {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({ params }: ProductDetailPageProps): Promise<Metadata> {
+  const resolvedParams = await params;
+  const product = await getProductBySlug(resolvedParams.slug);
+
+  if (!product) {
+    return {
+      title: "Ürün Bulunamadı | Artisan Woodworks",
+      description: "Aradığınız özel üretim mobilya modeli bulunamadı.",
+    };
+  }
+
+  const siteUrl = getSiteUrl();
+  const pageUrl = `${siteUrl}/urunler/${product.slug}`;
+  const desc = product.short_description || product.description || `${product.name} özel üretim masif ahşap mobilya modeli.`;
+  const primaryImg = product.images.find((img) => img.is_primary) || product.images[0];
+
+  return {
+    title: `${product.name} | Artisan Woodworks`,
+    description: desc,
+    alternates: {
+      canonical: pageUrl,
+    },
+    openGraph: {
+      title: `${product.name} | Artisan Woodworks`,
+      description: desc,
+      url: pageUrl,
+      images: primaryImg?.secure_url ? [{ url: primaryImg.secure_url, alt: primaryImg.alt_text || product.name }] : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${product.name} | Artisan Woodworks`,
+      description: desc,
+      images: primaryImg?.secure_url ? [primaryImg.secure_url] : [],
+    },
+  };
 }
 
 export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
@@ -19,15 +58,81 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     notFound();
   }
 
+  const siteUrl = getSiteUrl();
+  const pageUrl = `${siteUrl}/urunler/${product.slug}`;
   const fallbackImage =
     "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='900' viewBox='0 0 1200 900'><rect width='100%' height='100%' fill='%23f0eded'/><text x='50%' y='50%' font-family='serif' font-size='32' fill='%23442a22' text-anchor='middle' dy='.3em'>Artisan Woodworks</text></svg>";
 
   const primaryImg = product.images.find((img) => img.is_primary) || product.images[0];
   const mainImageUrl = primaryImg?.secure_url || fallbackImage;
 
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.short_description || product.description || "Özel üretim masif ahşap mobilya.",
+    image: primaryImg?.secure_url ? [primaryImg.secure_url] : [],
+    url: pageUrl,
+    category: product.category.name,
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Ana Sayfa",
+        item: siteUrl,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Ürünler",
+        item: `${siteUrl}/urunler`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: product.name,
+        item: pageUrl,
+      },
+    ],
+  };
+
   return (
     <main className="flex-grow pt-8 pb-24">
+      {/* Structured Data Scripts */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+
       <PageContainer>
+        {/* UI Breadcrumb */}
+        <nav aria-label="Breadcrumb" className="mb-6 text-xs text-[#827470]">
+          <ol className="flex items-center gap-2">
+            <li>
+              <Link href="/" className="hover:text-[#442a22] transition-colors">
+                Ana Sayfa
+              </Link>
+            </li>
+            <li>/</li>
+            <li>
+              <Link href="/urunler" className="hover:text-[#442a22] transition-colors">
+                Ürünler
+              </Link>
+            </li>
+            <li>/</li>
+            <li className="font-semibold text-[#442a22]">{product.name}</li>
+          </ol>
+        </nav>
+
         <div className="flex flex-col lg:flex-row gap-16">
           {/* Left: Product Images Gallery */}
           <div className="w-full lg:w-1/2 flex flex-col gap-4">

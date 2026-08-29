@@ -1,8 +1,21 @@
 import React, { Suspense } from "react";
+import type { Metadata } from "next";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { getCategories, getProducts } from "@/features/products/api";
 import { CategoryFilterBar } from "@/features/products/components/CategoryFilterBar";
 import { ProductCard } from "@/features/products/components/ProductCard";
+import { getSiteUrl } from "@/lib/site-url";
+
+const siteUrl = getSiteUrl();
+
+export const metadata: Metadata = {
+  title: "Özel Mobilya Modelleri & Ahşap Koleksiyonu",
+  description:
+    "Masif meşe, ceviz ve kestane ağacından üretilmiş yemek masası, konsol, sehpa ve sandalye koleksiyonunu inceleyin.",
+  alternates: {
+    canonical: `${siteUrl}/urunler`,
+  },
+};
 
 interface ProductsPageProps {
   searchParams: Promise<{ category?: string; page?: string }>;
@@ -42,7 +55,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         {productsData.items.length === 0 ? (
           <div className="text-center py-16 bg-[#fcf9f8] rounded border border-[#e5e2e1]">
             <p className="text-[#504441] text-base font-medium">
-              Henüz ürün eklenmemiş.
+              Henüz bu kategoride ürün bulunmuyor.
             </p>
           </div>
         ) : (

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
+import { getSiteUrl } from "@/lib/site-url";
 
 const inter = Inter({
   subsets: ["latin", "latin-ext"],
@@ -14,10 +15,43 @@ const playfair = Playfair_Display({
   display: "swap",
 });
 
+const siteUrl = getSiteUrl();
+
 export const metadata: Metadata = {
-  title: "Artisan Woodworks - Evinize Özel, Ustalıkla Üretilen Mobilyalar",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Artisan Woodworks | Özel Mobilya & Masif Ahşap Tasarım",
+    template: "%s | Artisan Woodworks",
+  },
   description:
-    "Masif ahşap ve özel üretim mobilya atölyesi. Özel ölçü ve zanaatkar üretimi.",
+    "Evinize özel ölçü ve zanaatkar üretimi masif ahşap mobilyalar. Yemek masası, konsol, sehpa ve özel tasarım ahşap mobilya atölyesi.",
+  applicationName: "Artisan Woodworks",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
+  },
+  openGraph: {
+    type: "website",
+    locale: "tr_TR",
+    url: siteUrl,
+    siteName: "Artisan Woodworks",
+    title: "Artisan Woodworks | Özel Mobilya & Masif Ahşap Tasarım",
+    description:
+      "Evinize özel ölçü ve zanaatkar üretimi masif ahşap mobilyalar. Yemek masası, konsol, sehpa ve özel tasarım ahşap mobilya atölyesi.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Artisan Woodworks | Özel Mobilya & Masif Ahşap Tasarım",
+    description:
+      "Evinize özel ölçü ve zanaatkar üretimi masif ahşap mobilyalar. Yemek masası, konsol, sehpa ve özel tasarım ahşap mobilya atölyesi.",
+  },
+  alternates: {
+    canonical: siteUrl,
+  },
 };
 
 export default function RootLayout({

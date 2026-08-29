@@ -1,7 +1,20 @@
 /* eslint-disable @next/next/no-img-element */
 import React from "react";
+import type { Metadata } from "next";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Badge } from "@/components/ui/Badge";
+import { getSiteUrl } from "@/lib/site-url";
+
+const siteUrl = getSiteUrl();
+
+export const metadata: Metadata = {
+  title: "Hakkımızda & Atölye Hikayemiz",
+  description:
+    "Masif ahşap mobilya atölyemizin zanaat hikayesi, el işçiliği değerlerimiz ve zamansız tasarım anlayışımız.",
+  alternates: {
+    canonical: `${siteUrl}/hakkimizda`,
+  },
+};
 
 export default function AboutPage() {
   return (
