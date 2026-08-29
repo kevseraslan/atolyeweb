@@ -70,16 +70,16 @@ async def test_upload_product_image_product_not_found(db_session: AsyncSession):
         )
 
 @pytest.mark.anyio
-@patch("app.services.image_service.cloudinary.uploader.upload")
+@patch("app.services.image_service._async_cloudinary_upload")
 async def test_upload_product_image_success_and_primary_replacement(
     mock_cloud_upload, db_session: AsyncSession
 ):
-    def fake_upload(file_bytes, public_id, resource_type, overwrite):
+    async def fake_async_upload(file_bytes, public_id):
         return {
             "secure_url": f"https://res.cloudinary.com/demo/{public_id}.jpg",
             "public_id": public_id,
         }
-    mock_cloud_upload.side_effect = fake_upload
+    mock_cloud_upload.side_effect = fake_async_upload
 
     settings.CLOUDINARY_CLOUD_NAME = "demo"
     settings.CLOUDINARY_API_KEY = "12345"
@@ -106,7 +106,7 @@ async def test_upload_product_image_success_and_primary_replacement(
     )
     assert res1.is_primary is True
     assert "https://res.cloudinary.com/demo/furniture-workshop/products/" in res1.secure_url
-    assert "cloudinary_public_id" not in res1.model_dump()  # Ensure secret/public_id not in public schema
+    assert "cloudinary_public_id" not in res1.model_dump()
 
     # 2nd Upload as is_primary=True -> Existing primary demoted to False
     res2 = await ImageService.upload_product_image(
@@ -119,7 +119,6 @@ async def test_upload_product_image_success_and_primary_replacement(
     )
     assert res2.is_primary is True
 
-    # Refresh res1 DB state to verify demotion
     img1_db = await db_session.get(ProductImage, res1.id)
     assert img1_db.is_primary is False
 
@@ -133,7 +132,6 @@ async def test_upload_product_image_max_gallery_limit(db_session: AsyncSession):
     db_session.add(prod)
     await db_session.commit()
 
-    # Pre-insert MAX_GALLERY_IMAGES (12)
     for i in range(MAX_GALLERY_IMAGES):
         img = ProductImage(
             product_id=prod.id,
@@ -154,15 +152,17 @@ async def test_upload_product_image_max_gallery_limit(db_session: AsyncSession):
     assert excinfo.value.code == "MAX_GALLERY_LIMIT_REACHED"
 
 @pytest.mark.anyio
-@patch("app.services.image_service.cloudinary.uploader.destroy")
-@patch("app.services.image_service.cloudinary.uploader.upload")
+@patch("app.services.image_service._async_cloudinary_destroy")
+@patch("app.services.image_service._async_cloudinary_upload")
 async def test_upload_product_image_db_commit_failure_compensating_delete(
     mock_upload, mock_destroy, db_session: AsyncSession
 ):
-    mock_upload.return_value = {
-        "secure_url": "https://res.cloudinary.com/demo/image/upload/sample.jpg",
-        "public_id": "furniture-workshop/products/temp123",
-    }
+    async def fake_upload(file_bytes, public_id):
+        return {
+            "secure_url": "https://res.cloudinary.com/demo/image/upload/sample.jpg",
+            "public_id": public_id,
+        }
+    mock_upload.side_effect = fake_upload
     settings.CLOUDINARY_CLOUD_NAME = "demo"
     settings.CLOUDINARY_API_KEY = "12345"
 
@@ -188,11 +188,11 @@ async def test_upload_product_image_db_commit_failure_compensating_delete(
         assert destroyed_public_id.startswith("furniture-workshop/products/")
 
 # ---------------------------------------------------------
-# 3. Product Image Delete & Primary Promotion Tests
+# 3. Product Image Delete & DB-First Consistency Tests
 # ---------------------------------------------------------
 @pytest.mark.anyio
-@patch("app.services.image_service.cloudinary.uploader.destroy")
-async def test_delete_product_image_primary_promotion(mock_destroy, db_session: AsyncSession):
+@patch("app.services.image_service._async_cloudinary_destroy")
+async def test_delete_product_image_db_first_ordering(mock_destroy, db_session: AsyncSession):
     settings.CLOUDINARY_CLOUD_NAME = "demo"
     settings.CLOUDINARY_API_KEY = "12345"
 
@@ -211,22 +211,46 @@ async def test_delete_product_image_primary_promotion(mock_destroy, db_session: 
 
     # Delete primary image (img1)
     await ImageService.delete_product_image(db=db_session, product_id=prod.id, image_id=img1.id)
-    mock_destroy.assert_called_once_with("pub1", resource_type="image")
+    mock_destroy.assert_called_once_with("pub1")
 
-    # Verify img2 was promoted to is_primary=True
+    # Verify img2 was promoted to is_primary=True inside same DB transaction
     await db_session.refresh(img2)
     assert img2.is_primary is True
 
+@pytest.mark.anyio
+@patch("app.services.image_service._async_cloudinary_destroy")
+async def test_delete_product_image_db_failure_does_not_call_cloudinary(mock_destroy, db_session: AsyncSession):
+    settings.CLOUDINARY_CLOUD_NAME = "demo"
+    settings.CLOUDINARY_API_KEY = "12345"
+
+    cat = Category(name="Cat Del Fail", slug="cat-del-fail", is_active=True)
+    db_session.add(cat)
+    await db_session.commit()
+
+    prod = Product(category_id=cat.id, name="Prod Del Fail", slug="prod-del-fail", is_active=True)
+    db_session.add(prod)
+    await db_session.commit()
+
+    img = ProductImage(product_id=prod.id, cloudinary_public_id="pub_fail", secure_url="http://url", sort_order=1, is_primary=True)
+    db_session.add(img)
+    await db_session.commit()
+
+    with patch.object(db_session, "commit", side_effect=Exception("DB Error Before Commit")):
+        with pytest.raises(Exception):
+            await ImageService.delete_product_image(db=db_session, product_id=prod.id, image_id=img.id)
+        # Cloudinary destroy MUST NOT be called if DB commit fails
+        assert not mock_destroy.called
+
 # ---------------------------------------------------------
-# 4. Color Texture Upload & Replacement Tests
+# 4. Color Texture Upload & Delete Consistency Tests
 # ---------------------------------------------------------
 @pytest.mark.anyio
-@patch("app.services.image_service.cloudinary.uploader.destroy")
-@patch("app.services.image_service.cloudinary.uploader.upload")
-async def test_color_texture_upload_and_replacement(
+@patch("app.services.image_service._async_cloudinary_destroy")
+@patch("app.services.image_service._async_cloudinary_upload")
+async def test_color_texture_upload_and_replacement_consistency(
     mock_upload, mock_destroy, db_session: AsyncSession
 ):
-    def fake_upload(file_bytes, public_id, resource_type, overwrite):
+    async def fake_upload(file_bytes, public_id):
         return {
             "secure_url": f"https://res.cloudinary.com/demo/{public_id}.jpg",
             "public_id": public_id,
@@ -258,6 +282,9 @@ async def test_color_texture_upload_and_replacement(
     destroyed_public_id = mock_destroy.call_args[0][0]
     assert destroyed_public_id.startswith("furniture-workshop/colors/")
 
+    mock_destroy.reset_mock()
+
     # 3. Delete Texture 2
     res_del = await ImageService.delete_color_texture(db=db_session, color_id=col.id)
     assert res_del.texture_url is None
+    assert mock_destroy.called

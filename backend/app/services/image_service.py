@@ -5,6 +5,7 @@ from typing import Optional
 from PIL import Image as PILImage
 import cloudinary
 import cloudinary.uploader
+from starlette.concurrency import run_in_threadpool
 
 from sqlalchemy import select, func, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -41,6 +42,24 @@ def _ensure_cloudinary_config():
         api_key=settings.CLOUDINARY_API_KEY,
         api_secret=settings.CLOUDINARY_API_SECRET,
         secure=True,
+    )
+
+async def _async_cloudinary_upload(file_bytes: bytes, public_id: str) -> dict:
+    _ensure_cloudinary_config()
+    return await run_in_threadpool(
+        cloudinary.uploader.upload,
+        file_bytes,
+        public_id=public_id,
+        resource_type="image",
+        overwrite=True,
+    )
+
+async def _async_cloudinary_destroy(public_id: str) -> dict:
+    _ensure_cloudinary_config()
+    return await run_in_threadpool(
+        cloudinary.uploader.destroy,
+        public_id,
+        resource_type="image",
     )
 
 def validate_image_file(file_bytes: bytes, filename: str = "upload.jpg") -> str:
@@ -109,17 +128,10 @@ class ImageService:
         # 3. Content & format validation
         validate_image_file(file_bytes, filename)
 
-        # 4. Upload to Cloudinary
-        _ensure_cloudinary_config()
+        # 4. Upload to Cloudinary via threadpool
         public_id = f"{CLOUDINARY_PRODUCT_FOLDER}/{uuid.uuid4().hex}"
-
         try:
-            upload_result = cloudinary.uploader.upload(
-                file_bytes,
-                public_id=public_id,
-                resource_type="image",
-                overwrite=True,
-            )
+            upload_result = await _async_cloudinary_upload(file_bytes, public_id)
             secure_url = upload_result.get("secure_url")
         except Exception as exc:
             logger.error(f"Cloudinary upload error for product {product_id}: {exc}")
@@ -129,9 +141,8 @@ class ImageService:
                 status_code=500,
             )
 
-        # 5. DB Transaction (with compensating delete on failure)
+        # 5. DB Transaction (with compensating delete on DB failure)
         try:
-            # If is_primary=True, demote existing primary images for this product
             if is_primary:
                 await db.execute(
                     update(ProductImage)
@@ -139,7 +150,6 @@ class ImageService:
                     .values(is_primary=False)
                 )
 
-            # If no primary image exists at all for this product, force is_primary=True
             if not is_primary and image_count == 0:
                 is_primary = True
 
@@ -160,7 +170,7 @@ class ImageService:
             await db.rollback()
             logger.error(f"DB commit failed after Cloudinary upload. Triggering compensating delete for asset '{public_id}': {exc}")
             try:
-                cloudinary.uploader.destroy(public_id, resource_type="image")
+                await _async_cloudinary_destroy(public_id)
             except Exception as cleanup_exc:
                 logger.error(f"Compensating delete failed for '{public_id}': {cleanup_exc}")
 
@@ -189,22 +199,14 @@ class ImageService:
         public_id = img.cloudinary_public_id
         was_primary = img.is_primary
 
-        # 1. Cloudinary Destroy
-        _ensure_cloudinary_config()
-        try:
-            cloudinary.uploader.destroy(public_id, resource_type="image")
-        except Exception as exc:
-            logger.warning(f"Cloudinary destroy returned error for asset '{public_id}': {exc}")
-
-        # 2. DB Delete
+        # 1. Perform DB delete and primary promotion within SAME transaction
         await db.delete(img)
-        await db.commit()
 
-        # 3. Primary Promotion if deleted image was primary
         if was_primary:
             remaining_stmt = (
                 select(ProductImage)
                 .where(ProductImage.product_id == product_id)
+                .where(ProductImage.id != image_id)
                 .order_by(ProductImage.sort_order.asc(), ProductImage.id.asc())
                 .limit(1)
             )
@@ -212,7 +214,15 @@ class ImageService:
             next_primary = rem_res.scalar_one_or_none()
             if next_primary:
                 next_primary.is_primary = True
-                await db.commit()
+
+        # 2. COMMIT DB FIRST
+        await db.commit()
+
+        # 3. Destroy Cloudinary asset AFTER successful DB commit
+        try:
+            await _async_cloudinary_destroy(public_id)
+        except Exception as exc:
+            logger.warning(f"Cloudinary destroy returned error for asset '{public_id}' after DB deletion: {exc}")
 
     @staticmethod
     async def upload_color_texture(
@@ -229,17 +239,11 @@ class ImageService:
 
         validate_image_file(file_bytes, filename)
 
-        _ensure_cloudinary_config()
         old_public_id = color.texture_public_id
         new_public_id = f"{CLOUDINARY_COLOR_FOLDER}/{uuid.uuid4().hex}"
 
         try:
-            upload_result = cloudinary.uploader.upload(
-                file_bytes,
-                public_id=new_public_id,
-                resource_type="image",
-                overwrite=True,
-            )
+            upload_result = await _async_cloudinary_upload(file_bytes, new_public_id)
             new_url = upload_result.get("secure_url")
         except Exception as exc:
             logger.error(f"Cloudinary texture upload error for color {color_id}: {exc}")
@@ -255,10 +259,10 @@ class ImageService:
             await db.commit()
             await db.refresh(color)
 
-            # Cleanup old Cloudinary asset after successful DB update
+            # Cleanup old Cloudinary asset AFTER successful DB update
             if old_public_id:
                 try:
-                    cloudinary.uploader.destroy(old_public_id, resource_type="image")
+                    await _async_cloudinary_destroy(old_public_id)
                 except Exception as clean_exc:
                     logger.warning(f"Failed to destroy old texture asset '{old_public_id}': {clean_exc}")
 
@@ -267,7 +271,7 @@ class ImageService:
             await db.rollback()
             logger.error(f"DB commit failed for color texture. Destroying new asset '{new_public_id}': {exc}")
             try:
-                cloudinary.uploader.destroy(new_public_id, resource_type="image")
+                await _async_cloudinary_destroy(new_public_id)
             except Exception:
                 pass
             raise AppException(
@@ -287,16 +291,19 @@ class ImageService:
         if not color:
             raise NotFoundException(message=f"Color with ID {color_id} not found.")
 
-        if color.texture_public_id:
-            _ensure_cloudinary_config()
-            try:
-                cloudinary.uploader.destroy(color.texture_public_id, resource_type="image")
-            except Exception as exc:
-                logger.warning(f"Cloudinary destroy error for texture '{color.texture_public_id}': {exc}")
+        old_public_id = color.texture_public_id
 
-            color.texture_public_id = None
-            color.texture_url = None
-            await db.commit()
-            await db.refresh(color)
+        # 1. Update DB FIRST
+        color.texture_public_id = None
+        color.texture_url = None
+        await db.commit()
+        await db.refresh(color)
+
+        # 2. Destroy Cloudinary asset AFTER successful DB commit
+        if old_public_id:
+            try:
+                await _async_cloudinary_destroy(old_public_id)
+            except Exception as exc:
+                logger.warning(f"Cloudinary destroy error for texture '{old_public_id}': {exc}")
 
         return ColorRead.model_validate(color)
