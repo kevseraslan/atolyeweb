@@ -1,35 +1,49 @@
-from fastapi import FastAPI
+import uuid
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from app.core.config import settings
+from starlette.middleware.base import BaseHTTPMiddleware
+
 from app.api.v1.router import api_router
+from app.core.config import settings
+from app.core.exceptions import AppException, app_exception_handler
+from app.core.logging import logger
+
+class RequestIdMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+        request.state.request_id = request_id
+        response = await call_next(request)
+        response.headers["X-Request-ID"] = request_id
+        return response
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info(f"Starting {settings.APP_NAME} ({settings.APP_ENV})...")
+    yield
+    logger.info(f"Shutting down {settings.APP_NAME}...")
 
 app = FastAPI(
-    title=settings.PROJECT_NAME,
+    title=settings.APP_NAME,
     openapi_url="/openapi.json",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url=None,
+    lifespan=lifespan,
 )
 
-# CORS Middleware Setup
-origins = [
-    settings.FRONTEND_URL,
-]
+# Middlewares
+app.add_middleware(RequestIdMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=[settings.FRONTEND_URL],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_headers=["Content-Type", "Authorization", "X-Request-ID"],
 )
 
-# Register v1 router
-app.include_router(api_router, prefix=settings.API_V1_STR)
+# Exception Handlers
+app.add_exception_handler(AppException, app_exception_handler)
 
-@app.get("/")
-async def root():
-    return {
-        "message": "Welcome to Furniture Workshop API",
-        "docs": "/docs",
-        "health": f"{settings.API_V1_STR}/health"
-    }
+# Include Master API v1 Router
+app.include_router(api_router, prefix=settings.API_V1_PREFIX)
