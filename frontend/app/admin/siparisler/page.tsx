@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import {
@@ -48,8 +48,7 @@ export default function AdminOrdersPage() {
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
-  const loadOrders = useCallback(async () => {
-    // Abort pending previous search request if any
+  const fetchOrders = async () => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -79,10 +78,40 @@ export default function AdminOrdersPage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedStatus, debouncedSearch, page, selectedOrder]);
+  };
 
   useEffect(() => {
-    loadOrders();
+    let isMounted = true;
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    const offset = (page - 1) * PAGE_SIZE;
+
+    getAdminOrders({
+      status: selectedStatus || undefined,
+      search: debouncedSearch || undefined,
+      limit: PAGE_SIZE,
+      offset,
+      signal: controller.signal,
+    })
+      .then((data) => {
+        if (isMounted) {
+          setOrders(data);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (err instanceof Error && err.name === "AbortError") return;
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
   }, [selectedStatus, debouncedSearch, page]);
 
   const handleStatusUpdate = async (e: React.FormEvent) => {
@@ -95,7 +124,7 @@ export default function AdminOrdersPage() {
       await updateAdminOrderStatus(selectedOrder.id, newStatus, statusNote);
       setMessage("Sipariş durumu başarıyla güncellendi.");
       setStatusNote("");
-      await loadOrders();
+      await fetchOrders();
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Durum güncellenemedi.");
     } finally {
@@ -114,7 +143,7 @@ export default function AdminOrdersPage() {
       const ap = approvedPrice ? parseFloat(approvedPrice) : undefined;
       await updateAdminOrderPrice(selectedOrder.id, qp, ap);
       setMessage("Fiyat teklif bilgileri güncellendi.");
-      await loadOrders();
+      await fetchOrders();
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Fiyat güncellenemedi.");
     } finally {
@@ -132,7 +161,7 @@ export default function AdminOrdersPage() {
       await addAdminOrderNote(selectedOrder.id, adminNoteText.trim());
       setAdminNoteText("");
       setMessage("Dahili admin notu eklendi.");
-      await loadOrders();
+      await fetchOrders();
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Not eklenemedi.");
     } finally {
@@ -154,7 +183,10 @@ export default function AdminOrdersPage() {
             type="text"
             placeholder="Takip No, Müşteri veya Tel Ara..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setLoading(true);
+            }}
             className="p-2.5 bg-white border border-[#d4c3be] rounded text-sm text-[#1b1c1c] w-full sm:w-64"
           />
 
@@ -163,6 +195,7 @@ export default function AdminOrdersPage() {
             onChange={(e) => {
               setSelectedStatus(e.target.value);
               setPage(1);
+              setLoading(true);
             }}
             className="p-2.5 bg-white border border-[#d4c3be] rounded text-sm text-[#1b1c1c]"
           >
@@ -253,7 +286,10 @@ export default function AdminOrdersPage() {
                 variant="outline"
                 size="sm"
                 disabled={page <= 1 || loading}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                onClick={() => {
+                  setPage((p) => Math.max(1, p - 1));
+                  setLoading(true);
+                }}
               >
                 Önceki Sayfa
               </Button>
@@ -261,7 +297,10 @@ export default function AdminOrdersPage() {
                 variant="outline"
                 size="sm"
                 disabled={orders.length < PAGE_SIZE || loading}
-                onClick={() => setPage((p) => p + 1)}
+                onClick={() => {
+                  setPage((p) => p + 1);
+                  setLoading(true);
+                }}
               >
                 Sonraki Sayfa
               </Button>
