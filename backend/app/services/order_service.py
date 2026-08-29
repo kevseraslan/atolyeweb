@@ -2,15 +2,18 @@ import random
 import string
 import datetime
 import logging
+import re
 import phonenumbers
-from typing import Optional
+from typing import Optional, List
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.exceptions import (
     AppException,
+    NotFoundException,
     BadRequestException,
 )
 from app.models.category import Category
@@ -22,12 +25,19 @@ from app.models.product_material import ProductMaterial
 from app.models.enums import OrderStatus
 from app.models.order import Order
 from app.models.order_status_history import OrderStatusHistory
-from app.schemas.order import OrderCreate, OrderCreatedResponse
+from app.schemas.order import (
+    OrderCreate,
+    OrderCreatedResponse,
+    OrderTrackingRequest,
+    OrderTrackingResponse,
+    OrderTrackingHistoryItem,
+)
 
 logger = logging.getLogger("app.order_service")
 
 TRACKING_PREFIX = getattr(settings, "TRACKING_PREFIX", "ATL")
 ALPHANUM = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"  # Excludes confusing characters O, I, 0, 1
+TRACKING_PATTERN = re.compile(r"^[A-Z0-9]{2,8}-\d{4}-[A-Z0-9]{4,10}$")
 
 def generate_tracking_number() -> str:
     year = datetime.datetime.now(datetime.timezone.utc).year
@@ -222,4 +232,72 @@ class OrderService:
             message="Sipariş takip numarası oluşturulamadı, lütfen tekrar deneyin.",
             code="TRACKING_COLLISION",
             status_code=500,
+        )
+
+    @staticmethod
+    async def track_order(
+        db: AsyncSession,
+        data: OrderTrackingRequest,
+    ) -> OrderTrackingResponse:
+        # Generic error message to prevent tracking enumeration attacks
+        generic_not_found = NotFoundException(
+            message="Sipariş bilgileri doğrulanamadı.",
+            code="ORDER_NOT_FOUND",
+        )
+
+        tracking_number = data.tracking_number.strip().upper()
+        if not TRACKING_PATTERN.match(tracking_number):
+            raise generic_not_found
+
+        try:
+            normalized_phone = normalize_phone_number(data.phone)
+        except Exception:
+            raise generic_not_found
+
+        # Eager load status_history ordered chronologically to avoid N+1
+        stmt = (
+            select(Order)
+            .options(selectinload(Order.status_history))
+            .where(Order.tracking_number == tracking_number)
+        )
+        res = await db.execute(stmt)
+        order = res.scalar_one_or_none()
+
+        if not order:
+            raise generic_not_found
+
+        # Exact normalized phone check
+        if order.phone != normalized_phone:
+            raise generic_not_found
+
+        # Build chronological history
+        sorted_history = sorted(
+            order.status_history,
+            key=lambda h: (h.created_at, h.id),
+        )
+
+        history_items = [
+            OrderTrackingHistoryItem(
+                status=item.new_status,
+                created_at=item.created_at,
+            )
+            for item in sorted_history
+        ]
+
+        product_name = order.snapshot_product_name or order.custom_product_name or "Özel Mobilya"
+
+        return OrderTrackingResponse(
+            tracking_number=order.tracking_number,
+            status=order.status,
+            product_name=product_name,
+            quantity=order.quantity,
+            requested_width=order.requested_width,
+            requested_height=order.requested_height,
+            requested_depth=order.requested_depth,
+            color_name=order.snapshot_color_name,
+            material_name=order.snapshot_material_name,
+            custom_note=order.custom_note,
+            created_at=order.created_at,
+            updated_at=order.updated_at,
+            history=history_items,
         )

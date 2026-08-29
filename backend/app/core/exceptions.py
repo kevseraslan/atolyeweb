@@ -23,10 +23,10 @@ class AppException(Exception):
         super().__init__(message)
 
 class NotFoundException(AppException):
-    def __init__(self, message: str = "Resource not found"):
+    def __init__(self, message: str = "Resource not found", code: str = "NOT_FOUND"):
         super().__init__(
             message=message,
-            code="NOT_FOUND",
+            code=code,
             status_code=status.HTTP_404_NOT_FOUND,
         )
 
