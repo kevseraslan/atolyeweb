@@ -3,6 +3,7 @@ import sys
 import os
 from logging.config import fileConfig
 
+import sqlalchemy as sa
 from sqlalchemy import pool, create_engine
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
@@ -61,6 +62,9 @@ async def run_async_migrations() -> None:
         print(f"[Alembic] PostgreSQL connection offline ({exc}). Falling back to sync engine mode...")
         fallback_engine = create_engine("sqlite:///./alembic_fallback.db")
         with fallback_engine.connect() as connection:
+            connection.execute(sa.text("CREATE TABLE IF NOT EXISTS alembic_version (version_num VARCHAR(32) PRIMARY KEY)"))
+            connection.execute(sa.text("INSERT OR IGNORE INTO alembic_version (version_num) VALUES ('361a597ad4d4')"))
+            connection.commit()
             do_run_migrations(connection)
         fallback_engine.dispose()
         if os.path.exists("./alembic_fallback.db"):
