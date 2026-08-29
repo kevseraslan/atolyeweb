@@ -1,0 +1,23 @@
+[Unit]
+Description=Furniture Workshop FastAPI Backend Service
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=furniture
+Group=furniture
+WorkingDirectory=/srv/furniture-workshop/app/backend
+EnvironmentFile=/srv/furniture-workshop/env/backend.env
+ExecStart=/srv/furniture-workshop/app/backend/.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 1 --no-access-log
+Restart=on-failure
+RestartSec=5s
+
+# Security Hardening Directives
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,23 @@
+[Unit]
+Description=Furniture Workshop Next.js Frontend Service
+After=network.target furniture-backend.service
+Wants=furniture-backend.service
+
+[Service]
+Type=simple
+User=furniture
+Group=furniture
+WorkingDirectory=/srv/furniture-workshop/app/frontend
+EnvironmentFile=/srv/furniture-workshop/env/frontend.env
+ExecStart=/usr/bin/npm run start -- -p 3000 -H 127.0.0.1
+Restart=on-failure
+RestartSec=5s
+
+# Security Hardening Directives
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target
