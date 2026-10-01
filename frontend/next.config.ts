@@ -39,7 +39,7 @@ const nextConfig: NextConfig = {
               "script-src 'self' 'unsafe-inline'; " +
               "style-src 'self' 'unsafe-inline'; " +
               "font-src 'self'; " +
-              "connect-src 'self'; " +
+              "connect-src 'self' https://atolyeweb.onrender.com; " +
               "object-src 'none'; " +
               "base-uri 'self'; " +
               "form-action 'self'; " +
