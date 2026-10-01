@@ -87,14 +87,14 @@ class AdminAuthService:
         is_prod = settings.APP_ENV == "production"
 
         response.set_cookie(
-            key=COOKIE_NAME,
-            value=token,
-            httponly=True,
-            samesite="lax",
-            secure=is_prod,
-            path="/",
-            max_age=TOKEN_EXPIRE_HOURS * 3600,
-        )
+    key=COOKIE_NAME,
+    value=token,
+    httponly=True,
+    samesite="none" if is_prod else "lax",
+    secure=is_prod,
+    path="/",
+    max_age=TOKEN_EXPIRE_HOURS * 3600,
+)
         response.headers["X-CSRF-Token"] = csrf_token
 
         return {
