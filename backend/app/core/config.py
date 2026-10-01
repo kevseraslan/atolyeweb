@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     TRUST_PROXY: bool = False  # Opt-in for trusting Nginx X-Forwarded-For headers after Phase 18 deployment
 
     # Production Rate Limit Central Constants
-    LOGIN_RATE_LIMIT: str = "10/15m"       # 10 attempts per 15 minutes
+    LOGIN_RATE_LIMIT: str = "100/15m"       # 10 attempts per 15 minutes
     TRACKING_RATE_LIMIT: str = "30/m"       # 30 requests per minute
     ORDER_CREATE_RATE_LIMIT: str = "30/m"   # 30 requests per minute
 
