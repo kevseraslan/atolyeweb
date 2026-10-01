@@ -1,7 +1,6 @@
 import sys
 import os
 import asyncio
-from getpass import getpass
 from argon2 import PasswordHasher
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -12,46 +11,45 @@ from app.models.admin import Admin
 
 ph = PasswordHasher()
 
+
 async def main():
-    print("--- Artisan Woodworks Admin User Creation CLI ---")
-    email = input("Admin Email: ").strip().lower()
+    email = os.getenv("ADMIN_EMAIL", "").strip().lower()
+    full_name = os.getenv("ADMIN_FULL_NAME", "").strip()
+    password = os.getenv("ADMIN_PASSWORD", "")
+
     if not email or "@" not in email:
-        print("Error: Invalid email address.")
-        sys.exit(1)
+        print("ADMIN_EMAIL is missing or invalid.")
+        return
 
-    full_name = input("Admin Full Name: ").strip()
     if not full_name:
-        print("Error: Full name is required.")
-        sys.exit(1)
+        print("ADMIN_FULL_NAME is missing.")
+        return
 
-    password = getpass("Admin Password (min 12 chars): ")
     if len(password) < 12:
-        print("Error: Password must be at least 12 characters long.")
-        sys.exit(1)
-
-    password_confirm = getpass("Confirm Admin Password: ")
-    if password != password_confirm:
-        print("Error: Passwords do not match.")
-        sys.exit(1)
+        print("ADMIN_PASSWORD is missing or must be at least 12 characters.")
+        return
 
     async with AsyncSessionLocal() as db:
         stmt = select(Admin).where(Admin.email == email)
         res = await db.execute(stmt)
-        if res.scalar_one_or_none():
-            print(f"Error: Admin with email '{email}' already exists.")
-            sys.exit(1)
 
-        password_hash = ph.hash(password)
+        if res.scalar_one_or_none():
+            print(f"Admin '{email}' already exists. Skipping.")
+            return
+
         admin = Admin(
             email=email,
-            password_hash=password_hash,
+            password_hash=ph.hash(password),
             full_name=full_name,
             role="SUPER_ADMIN",
             is_active=True,
         )
+
         db.add(admin)
         await db.commit()
-        print(f"Success: Super Admin '{email}' successfully created!")
+
+        print(f"Success: Super Admin '{email}' created.")
+
 
 if __name__ == "__main__":
     asyncio.run(main())
