@@ -18,10 +18,10 @@ export async function fetchClientApi<T>(
 
   try {
     const response = await fetch(url, {
-      ...options,
-      headers,
-    });
-
+  ...options,
+  headers,
+  credentials: "include",
+});
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
       let errorCode = "HTTP_ERROR";
