@@ -36,12 +36,17 @@ export interface ProductListItem {
   name: string;
   slug: string;
   short_description?: string;
+  description?: string;
+  default_width?: number;
+  default_height?: number;
+  default_depth?: number;
   category: Category;
   primary_image?: ProductImage;
   is_featured: boolean;
   is_customizable: boolean;
   is_active?: boolean;
   colors: Color[];
+  materials?: Material[];
 }
 
 export interface ProductDetail {

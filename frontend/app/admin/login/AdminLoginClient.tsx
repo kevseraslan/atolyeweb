@@ -27,8 +27,12 @@ export function AdminLoginClient() {
       await loginAdmin(email.trim(), password);
       router.push("/admin");
       router.refresh();
-    } catch {
-      setErrorMessage("E-posta veya şifre hatalı.");
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message) {
+        setErrorMessage(err.message);
+      } else {
+        setErrorMessage("E-posta veya şifre hatalı.");
+      }
     } finally {
       setLoading(false);
     }

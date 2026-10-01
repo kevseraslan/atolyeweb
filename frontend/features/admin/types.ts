@@ -61,3 +61,57 @@ export interface SiteSettingsData {
   hero_title?: string | null;
   about_text?: string | null;
 }
+
+export interface AdminProductCreateInput {
+  category_id: number;
+  name: string;
+  slug?: string;
+  short_description?: string;
+  description?: string;
+  default_width?: number;
+  default_height?: number;
+  default_depth?: number;
+  is_customizable?: boolean;
+  is_featured?: boolean;
+  is_active?: boolean;
+  color_ids?: number[];
+  material_ids?: number[];
+}
+
+export interface AdminProductUpdateInput {
+  category_id?: number;
+  name?: string;
+  slug?: string;
+  short_description?: string;
+  description?: string;
+  default_width?: number;
+  default_height?: number;
+  default_depth?: number;
+  is_customizable?: boolean;
+  is_featured?: boolean;
+  is_active?: boolean;
+  color_ids?: number[];
+  material_ids?: number[];
+}
+
+export interface AdminCategoryCreateUpdateInput {
+  name: string;
+  slug?: string;
+  description?: string;
+  sort_order?: number;
+  is_active?: boolean;
+}
+
+export interface AdminColorCreateUpdateInput {
+  name: string;
+  hex_code?: string;
+  sort_order?: number;
+  is_active?: boolean;
+}
+
+export interface AdminMaterialCreateUpdateInput {
+  name: string;
+  description?: string;
+  sort_order?: number;
+  is_active?: boolean;
+}

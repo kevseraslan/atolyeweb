@@ -11,17 +11,18 @@ export async function fetchClientApi<T>(
     ? endpoint
     : `${API_BASE_URL}${endpoint}`;
 
-  const headers = {
-    "Content-Type": "application/json",
-    ...(options.headers || {}),
-  };
+  const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
+  const headers = new Headers(options.headers || {});
+  if (!isFormData && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
 
   try {
     const response = await fetch(url, {
-  ...options,
-  headers,
-  credentials: "include",
-});
+      credentials: "include",
+      ...options,
+      headers,
+    });
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
       let errorCode = "HTTP_ERROR";

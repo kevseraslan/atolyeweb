@@ -87,14 +87,14 @@ class AdminAuthService:
         is_prod = settings.APP_ENV == "production"
 
         response.set_cookie(
-    key=COOKIE_NAME,
-    value=token,
-    httponly=True,
-    samesite="none" if is_prod else "lax",
-    secure=is_prod,
-    path="/",
-    max_age=TOKEN_EXPIRE_HOURS * 3600,
-)
+            key=COOKIE_NAME,
+            value=token,
+            httponly=True,
+            samesite="none" if is_prod else "lax",
+            secure=is_prod,
+            path="/",
+            max_age=TOKEN_EXPIRE_HOURS * 3600,
+        )
         response.headers["X-CSRF-Token"] = csrf_token
 
         return {
@@ -120,7 +120,7 @@ class AdminAuthService:
             key=COOKIE_NAME,
             path="/",
             httponly=True,
-            samesite="lax",
+            samesite="none" if is_prod else "lax",
             secure=is_prod,
         )
         return {"message": "Oturum başarıyla kapatıldı ve geçersiz kılındı."}
@@ -129,7 +129,7 @@ async def get_current_admin(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ) -> Admin:
-    token = request.cookies.get(COOKIE_NAME)
+    token = request.cookies.get(COOKIE_NAME) or request.cookies.get("admin_session") or request.cookies.get("__Host-admin_session")
     if not token:
         auth_header = request.headers.get("Authorization")
         if auth_header and auth_header.startswith("Bearer "):

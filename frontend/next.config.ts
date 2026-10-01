@@ -8,7 +8,20 @@ const nextConfig: NextConfig = {
         hostname: "res.cloudinary.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        pathname: "/**",
+      },
     ],
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/api/v1/:path*",
+        destination: "http://127.0.0.1:8000/api/v1/:path*",
+      },
+    ];
   },
   async headers() {
     return [
@@ -35,11 +48,11 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value:
               "default-src 'self'; " +
-              "img-src 'self' data: https://res.cloudinary.com; " +
-              "script-src 'self' 'unsafe-inline'; " +
+              "img-src 'self' data: https://res.cloudinary.com https://images.unsplash.com; " +
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
               "style-src 'self' 'unsafe-inline'; " +
               "font-src 'self'; " +
-              "connect-src 'self' https://atolyeweb.onrender.com; " +
+              "connect-src 'self' https://atolyeweb.onrender.com http://localhost:8000 http://127.0.0.1:8000 ws://localhost:3000 ws://127.0.0.1:3000; " +
               "object-src 'none'; " +
               "base-uri 'self'; " +
               "form-action 'self'; " +

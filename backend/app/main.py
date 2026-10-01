@@ -61,9 +61,16 @@ app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(SensitiveCacheControlMiddleware)
 app.add_middleware(RequestIdMiddleware)
 
+allowed_origins = list(set([
+    settings.FRONTEND_URL.rstrip("/"),
+    "https://atolyeweb-delta.vercel.app",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.FRONTEND_URL.rstrip("/")],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["Content-Type", "Authorization", "X-Request-ID", "X-CSRF-Token"],

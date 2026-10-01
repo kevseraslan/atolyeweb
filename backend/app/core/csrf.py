@@ -9,30 +9,38 @@ from app.core.exceptions import ForbiddenException, UnauthorizedException
 CSRF_TOKEN_HEADER = "X-CSRF-Token"
 CSRF_SECRET = settings.AUTH_SECRET
 
-def get_allowed_origin() -> str:
-    url = settings.FRONTEND_URL.strip().rstrip("/")
-    parsed = urlparse(url)
-    return f"{parsed.scheme}://{parsed.netloc}"
+def get_allowed_origins() -> list[str]:
+    origins = [
+        "https://atolyeweb-delta.vercel.app",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
+    if settings.FRONTEND_URL:
+        url = settings.FRONTEND_URL.strip().rstrip("/")
+        parsed = urlparse(url)
+        if parsed.scheme and parsed.netloc:
+            origins.append(f"{parsed.scheme}://{parsed.netloc}".lower())
+    return list(set(origins))
 
 def validate_origin_and_referer(request: Request) -> None:
     # Safe methods do not require origin check
     if request.method in ["GET", "HEAD", "OPTIONS"]:
         return
 
-    allowed = get_allowed_origin()
+    allowed_origins = get_allowed_origins()
     origin = request.headers.get("origin")
     referer = request.headers.get("referer")
 
     target_origin: str = ""
     if origin:
         parsed_origin = urlparse(origin.strip())
-        target_origin = f"{parsed_origin.scheme}://{parsed_origin.netloc}"
+        target_origin = f"{parsed_origin.scheme}://{parsed_origin.netloc}".lower()
     elif referer:
         parsed_ref = urlparse(referer.strip())
-        target_origin = f"{parsed_ref.scheme}://{parsed_ref.netloc}"
+        target_origin = f"{parsed_ref.scheme}://{parsed_ref.netloc}".lower()
 
     # In local testing or API test clients without origin header, check if origin is explicitly provided
-    if target_origin and target_origin.lower() != allowed.lower():
+    if target_origin and target_origin not in allowed_origins:
         raise ForbiddenException("Geçersiz istek kaynağı (Origin mismatch).", code="CSRF_ORIGIN_FORBIDDEN")
 
 def generate_csrf_token(admin_id: int, session_version: int) -> str:
