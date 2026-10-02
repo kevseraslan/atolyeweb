@@ -136,6 +136,15 @@ jobs:
           npm ci
           npx playwright install chromium --with-deps
 
+      - name: Build Next.js Production Bundle
+        env:
+          NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3000
+          NEXT_PUBLIC_API_URL: http://127.0.0.1:8000/api/v1
+          NEXT_PUBLIC_SITE_INDEXABLE: "false"
+        run: |
+          cd frontend
+          npm run build
+
       - name: Run E2E Test Suite
         env:
           DATABASE_URL: postgresql+asyncpg://test_user:test_password@localhost:5432/furniture_workshop_test
@@ -150,11 +159,10 @@ jobs:
           python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 &
 
           cd ../frontend
-          npm run build
           npm run start -- -p 3000 &
 
-          for i in {1..40}; do
-            if curl -s http://127.0.0.1:8000/api/v1/health | grep -q "ok" && curl -s -I http://127.0.0.1:3000 | grep -q "200"; then
+          for i in {1..30}; do
+            if curl -s http://127.0.0.1:8000/api/v1/health | grep -q "ok" && curl -s http://127.0.0.1:3000 > /dev/null 2>&1; then
               echo "Both servers are ready!"
               break
             fi
