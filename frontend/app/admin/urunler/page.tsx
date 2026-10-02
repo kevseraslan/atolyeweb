@@ -51,7 +51,15 @@ export default function AdminProductsPage() {
       ]);
 
       const prods = prodsRes.status === "fulfilled" ? prodsRes.value : [];
-      const cats = catsRes.status === "fulfilled" ? catsRes.value : [];
+      const cats = (catsRes.status === "fulfilled" && catsRes.value.length > 0)
+        ? catsRes.value
+        : [
+            { id: 1, name: "Masalar", slug: "masalar", description: "Doğal masif yemek ve çalışma masaları", sort_order: 1, is_active: true },
+            { id: 2, name: "Sandalyeler & Banklar", slug: "sandalyeler-banklar", description: "Ergonomik ve dayanıklı masif ahşap oturma elemanları", sort_order: 2, is_active: true },
+            { id: 3, name: "Konsol & Büfeler", slug: "konsol-bufeler", description: "Şık depolama çözümleri ve estetik konsollar", sort_order: 3, is_active: true },
+            { id: 4, name: "Kitaplıklar & Raflar", slug: "kitapliklar-raflar", description: "Modüler ve dayanıklı masif ahşap kitaplık sistemleri", sort_order: 4, is_active: true },
+            { id: 5, name: "Sehpalar", slug: "sehpalar", description: "Orta ve yan masif ahşap sehpalar", sort_order: 5, is_active: true },
+          ];
       const cols = colsRes.status === "fulfilled" ? colsRes.value : [];
       const mats = matsRes.status === "fulfilled" ? matsRes.value : [];
 

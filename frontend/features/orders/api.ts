@@ -20,13 +20,22 @@ export async function getActiveColors(): Promise<Color[]> {
   }
 }
 
+const DEFAULT_ORDER_CATEGORIES: Category[] = [
+  { id: 1, name: "Masalar", slug: "masalar", description: "Doğal masif yemek ve çalışma masaları", sort_order: 1, is_active: true },
+  { id: 2, name: "Sandalyeler & Banklar", slug: "sandalyeler-banklar", description: "Ergonomik ve dayanıklı masif ahşap oturma elemanları", sort_order: 2, is_active: true },
+  { id: 3, name: "Konsol & Büfeler", slug: "konsol-bufeler", description: "Şık depolama çözümleri ve estetik konsollar", sort_order: 3, is_active: true },
+  { id: 4, name: "Kitaplıklar & Raflar", slug: "kitapliklar-raflar", description: "Modüler ve dayanıklı masif ahşap kitaplık sistemleri", sort_order: 4, is_active: true },
+  { id: 5, name: "Sehpalar", slug: "sehpalar", description: "Orta ve yan masif ahşap sehpalar", sort_order: 5, is_active: true },
+];
+
 export async function getActiveCategories(): Promise<Category[]> {
   try {
-    return await fetchClientApi<Category[]>("/categories");
+    const cats = await fetchClientApi<Category[]>("/categories");
+    if (Array.isArray(cats) && cats.length > 0) return cats;
   } catch (error) {
     console.error("Failed to fetch categories:", error);
-    return [];
   }
+  return DEFAULT_ORDER_CATEGORIES;
 }
 
 export async function getActiveMaterials(): Promise<Material[]> {

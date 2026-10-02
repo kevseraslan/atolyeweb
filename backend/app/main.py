@@ -40,9 +40,12 @@ class SensitiveCacheControlMiddleware(BaseHTTPMiddleware):
 
         return response
 
+from app.db.init_db import seed_initial_data_if_empty
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info(f"Starting {settings.APP_NAME} ({settings.APP_ENV})...")
+    await seed_initial_data_if_empty()
     yield
     logger.info(f"Shutting down {settings.APP_NAME}...")
 
