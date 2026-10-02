@@ -43,6 +43,14 @@ export async function fetchClientApi<T>(
         if (errorData?.error) {
           errorMessage = errorData.error.message || errorMessage;
           errorCode = errorData.error.code || errorCode;
+        } else if (errorData?.detail) {
+          if (typeof errorData.detail === "string") {
+            errorMessage = errorData.detail;
+          } else if (Array.isArray(errorData.detail)) {
+            errorMessage = errorData.detail
+              .map((d: any) => (typeof d === "string" ? d : d.msg || JSON.stringify(d)))
+              .join("; ");
+          }
         }
       } catch {
         // Fallback to default message
