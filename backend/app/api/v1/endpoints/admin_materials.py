@@ -7,7 +7,7 @@ from app.db.session import get_db
 from app.models.admin import Admin
 from app.models.material import Material
 from app.schemas.product import MaterialRead
-from app.schemas.admin import AdminMaterialCreateUpdate
+from app.schemas.admin import AdminMaterialCreate, AdminMaterialUpdate
 from app.services.admin_auth_service import get_current_admin
 from app.core.exceptions import NotFoundException
 
@@ -25,7 +25,7 @@ async def list_admin_materials(
 
 @router.post("", response_model=MaterialRead, status_code=status.HTTP_201_CREATED)
 async def create_admin_material(
-    data: AdminMaterialCreateUpdate,
+    data: AdminMaterialCreate,
     current_admin: Admin = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ) -> MaterialRead:
@@ -43,7 +43,7 @@ async def create_admin_material(
 @router.patch("/{material_id}", response_model=MaterialRead)
 async def update_admin_material(
     material_id: int,
-    data: AdminMaterialCreateUpdate,
+    data: AdminMaterialUpdate,
     current_admin: Admin = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ) -> MaterialRead:
@@ -53,10 +53,14 @@ async def update_admin_material(
     if not mat:
         raise NotFoundException(f"Material {material_id} not found.")
 
-    mat.name = data.name.strip()
-    mat.description = data.description
-    mat.sort_order = data.sort_order
-    mat.is_active = data.is_active
+    if data.name is not None:
+        mat.name = data.name.strip()
+    if data.description is not None:
+        mat.description = data.description
+    if data.sort_order is not None:
+        mat.sort_order = data.sort_order
+    if data.is_active is not None:
+        mat.is_active = data.is_active
 
     await db.commit()
     await db.refresh(mat)

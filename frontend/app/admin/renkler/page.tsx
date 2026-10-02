@@ -141,8 +141,8 @@ export default function AdminColorsPage() {
                         }`}
                         onClick={async () => {
                           try {
-                            await updateAdminColor(c.id, { is_active: !c.is_active });
-                            setMessage(`Renk ${c.is_active ? "pasife" : "aktife"} alındı.`);
+                            await updateAdminColor(c.id, { is_active: c.is_active === false });
+                            setMessage(`Renk ${c.is_active !== false ? "pasife" : "aktife"} alındı.`);
                             await loadColors();
                           } catch (err) {
                             setMessage(err instanceof Error ? err.message : "İşlem başarısız.");

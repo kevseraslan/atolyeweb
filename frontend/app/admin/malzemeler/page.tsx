@@ -135,8 +135,8 @@ export default function AdminMaterialsPage() {
                         }`}
                         onClick={async () => {
                           try {
-                            await updateAdminMaterial(m.id, { is_active: !m.is_active });
-                            setMessage(`Malzeme ${m.is_active ? "pasife" : "aktife"} alındı.`);
+                            await updateAdminMaterial(m.id, { is_active: m.is_active === false });
+                            setMessage(`Malzeme ${m.is_active !== false ? "pasife" : "aktife"} alındı.`);
                             await loadMaterials();
                           } catch (err) {
                             setMessage(err instanceof Error ? err.message : "İşlem başarısız.");

@@ -7,7 +7,7 @@ from app.db.session import get_db
 from app.models.admin import Admin
 from app.models.category import Category
 from app.schemas.category import CategoryRead
-from app.schemas.admin import AdminCategoryCreateUpdate
+from app.schemas.admin import AdminCategoryCreate, AdminCategoryUpdate
 from app.services.admin_auth_service import get_current_admin
 from app.services.category_service import CategoryService
 from app.core.exceptions import NotFoundException, BadRequestException
@@ -26,7 +26,7 @@ async def list_admin_categories(
 
 @router.post("", response_model=CategoryRead, status_code=status.HTTP_201_CREATED)
 async def create_admin_category(
-    data: AdminCategoryCreateUpdate,
+    data: AdminCategoryCreate,
     current_admin: Admin = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ) -> CategoryRead:
@@ -50,7 +50,7 @@ async def create_admin_category(
 @router.patch("/{category_id}", response_model=CategoryRead)
 async def update_admin_category(
     category_id: int,
-    data: AdminCategoryCreateUpdate,
+    data: AdminCategoryUpdate,
     current_admin: Admin = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ) -> CategoryRead:
@@ -60,12 +60,16 @@ async def update_admin_category(
     if not cat:
         raise NotFoundException(f"Category {category_id} not found.")
 
-    cat.name = data.name.strip()
-    if data.slug:
+    if data.name is not None:
+        cat.name = data.name.strip()
+    if data.slug is not None:
         cat.slug = data.slug.strip()
-    cat.description = data.description
-    cat.sort_order = data.sort_order
-    cat.is_active = data.is_active
+    if data.description is not None:
+        cat.description = data.description
+    if data.sort_order is not None:
+        cat.sort_order = data.sort_order
+    if data.is_active is not None:
+        cat.is_active = data.is_active
 
     await db.commit()
     await db.refresh(cat)

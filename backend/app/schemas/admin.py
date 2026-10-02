@@ -56,7 +56,7 @@ class AdminProductUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 # Admin Category/Color/Material Management Schemas
-class AdminCategoryCreateUpdate(BaseModel):
+class AdminCategoryCreate(BaseModel):
     name: str = Field(..., min_length=2, max_length=100)
     slug: Optional[str] = Field(None, max_length=120)
     description: Optional[str] = Field(None, max_length=2000)
@@ -65,7 +65,18 @@ class AdminCategoryCreateUpdate(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-class AdminColorCreateUpdate(BaseModel):
+class AdminCategoryUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=2, max_length=100)
+    slug: Optional[str] = Field(None, max_length=120)
+    description: Optional[str] = Field(None, max_length=2000)
+    sort_order: Optional[int] = None
+    is_active: Optional[bool] = None
+
+    model_config = ConfigDict(extra="forbid")
+
+AdminCategoryCreateUpdate = AdminCategoryCreate
+
+class AdminColorCreate(BaseModel):
     name: str = Field(..., min_length=2, max_length=100)
     hex_code: Optional[str] = Field(None, max_length=30)
     sort_order: int = 0
@@ -73,13 +84,33 @@ class AdminColorCreateUpdate(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-class AdminMaterialCreateUpdate(BaseModel):
+class AdminColorUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=2, max_length=100)
+    hex_code: Optional[str] = Field(None, max_length=30)
+    sort_order: Optional[int] = None
+    is_active: Optional[bool] = None
+
+    model_config = ConfigDict(extra="forbid")
+
+AdminColorCreateUpdate = AdminColorCreate
+
+class AdminMaterialCreate(BaseModel):
     name: str = Field(..., min_length=2, max_length=100)
     description: Optional[str] = Field(None, max_length=2000)
     sort_order: int = 0
     is_active: bool = True
 
     model_config = ConfigDict(extra="forbid")
+
+class AdminMaterialUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=2, max_length=100)
+    description: Optional[str] = Field(None, max_length=2000)
+    sort_order: Optional[int] = None
+    is_active: Optional[bool] = None
+
+    model_config = ConfigDict(extra="forbid")
+
+AdminMaterialCreateUpdate = AdminMaterialCreate
 
 # Admin Order Management Schemas
 class AdminOrderStatusUpdate(BaseModel):

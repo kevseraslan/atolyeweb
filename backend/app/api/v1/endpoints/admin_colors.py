@@ -7,7 +7,7 @@ from app.db.session import get_db
 from app.models.admin import Admin
 from app.models.color import Color
 from app.schemas.product import ColorRead
-from app.schemas.admin import AdminColorCreateUpdate
+from app.schemas.admin import AdminColorCreate, AdminColorUpdate
 from app.services.admin_auth_service import get_current_admin
 from app.services.image_service import ImageService
 from app.core.exceptions import NotFoundException
@@ -26,7 +26,7 @@ async def list_admin_colors(
 
 @router.post("", response_model=ColorRead, status_code=status.HTTP_201_CREATED)
 async def create_admin_color(
-    data: AdminColorCreateUpdate,
+    data: AdminColorCreate,
     current_admin: Admin = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ) -> ColorRead:
@@ -44,7 +44,7 @@ async def create_admin_color(
 @router.patch("/{color_id}", response_model=ColorRead)
 async def update_admin_color(
     color_id: int,
-    data: AdminColorCreateUpdate,
+    data: AdminColorUpdate,
     current_admin: Admin = Depends(get_current_admin),
     db: AsyncSession = Depends(get_db),
 ) -> ColorRead:
@@ -54,10 +54,14 @@ async def update_admin_color(
     if not color:
         raise NotFoundException(f"Color {color_id} not found.")
 
-    color.name = data.name.strip()
-    color.hex_code = data.hex_code.strip() if data.hex_code else None
-    color.sort_order = data.sort_order
-    color.is_active = data.is_active
+    if data.name is not None:
+        color.name = data.name.strip()
+    if data.hex_code is not None:
+        color.hex_code = data.hex_code.strip() if data.hex_code else None
+    if data.sort_order is not None:
+        color.sort_order = data.sort_order
+    if data.is_active is not None:
+        color.is_active = data.is_active
 
     await db.commit()
     await db.refresh(color)

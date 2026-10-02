@@ -135,8 +135,8 @@ export default function AdminCategoriesPage() {
                         }`}
                         onClick={async () => {
                           try {
-                            await updateAdminCategory(c.id, { is_active: !c.is_active });
-                            setMessage(`Kategori ${c.is_active ? "pasife" : "aktife"} alındı.`);
+                            await updateAdminCategory(c.id, { is_active: c.is_active === false });
+                            setMessage(`Kategori ${c.is_active !== false ? "pasife" : "aktife"} alındı.`);
                             await loadCategories();
                           } catch (err) {
                             setMessage(err instanceof Error ? err.message : "İşlem başarısız.");
