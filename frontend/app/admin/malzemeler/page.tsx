@@ -19,20 +19,28 @@ export default function AdminMaterialsPage() {
   const [savingEdit, setSavingEdit] = useState(false);
 
   const loadMaterials = useCallback(async () => {
-    setLoading(true);
     try {
       const data = await getAdminMaterials();
       setMaterials(data);
     } catch (err) {
       console.error("Failed to load materials:", err);
-    } finally {
-      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    loadMaterials();
-  }, [loadMaterials]);
+    let active = true;
+    getAdminMaterials()
+      .then((data) => {
+        if (active) setMaterials(data);
+      })
+      .catch((err) => console.error("Failed to load materials:", err))
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();

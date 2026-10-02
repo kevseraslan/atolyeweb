@@ -19,20 +19,28 @@ export default function AdminCategoriesPage() {
   const [savingEdit, setSavingEdit] = useState(false);
 
   const loadCategories = useCallback(async () => {
-    setLoading(true);
     try {
       const data = await getAdminCategories();
       setCategories(data);
     } catch (err) {
       console.error("Failed to load categories:", err);
-    } finally {
-      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    loadCategories();
-  }, [loadCategories]);
+    let active = true;
+    getAdminCategories()
+      .then((data) => {
+        if (active) setCategories(data);
+      })
+      .catch((err) => console.error("Failed to load categories:", err))
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();

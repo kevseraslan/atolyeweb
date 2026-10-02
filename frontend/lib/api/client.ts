@@ -48,7 +48,7 @@ export async function fetchClientApi<T>(
             errorMessage = errorData.detail;
           } else if (Array.isArray(errorData.detail)) {
             errorMessage = errorData.detail
-              .map((d: any) => (typeof d === "string" ? d : d.msg || JSON.stringify(d)))
+              .map((d: { msg?: string }) => (typeof d === "string" ? d : d.msg || JSON.stringify(d)))
               .join("; ");
           }
         }

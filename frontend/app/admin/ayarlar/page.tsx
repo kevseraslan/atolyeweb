@@ -46,7 +46,7 @@ export default function AdminSettingsPage() {
       setSettingsData(updated);
       setMessage("Site ayarları başarıyla kaydedildi.");
     } catch (err) {
-      setMessage("Site ayarları kaydedilemedi.");
+      setMessage(err instanceof Error ? err.message : "Site ayarları kaydedilemedi.");
     } finally {
       setSaving(false);
     }

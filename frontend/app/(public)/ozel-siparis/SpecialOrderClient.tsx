@@ -6,7 +6,6 @@ import Image from "next/image";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { getProducts } from "@/features/products/api";
 import { ProductListItem, Color, Material, Category } from "@/features/products/types";
 import { createOrder, getActiveColors, getActiveMaterials, getActiveCategories, getActiveProducts } from "@/features/orders/api";
 import { OrderCreatedResponse } from "@/features/orders/types";

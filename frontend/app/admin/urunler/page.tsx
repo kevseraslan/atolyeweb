@@ -41,7 +41,6 @@ export default function AdminProductsPage() {
   const [formMaterialIds, setFormMaterialIds] = useState<number[]>([]);
 
   const loadAll = useCallback(async () => {
-    setLoading(true);
     try {
       const [prodsRes, catsRes, colsRes, matsRes] = await Promise.allSettled([
         getAdminProducts(),
@@ -72,14 +71,52 @@ export default function AdminProductsPage() {
       }
     } catch (err) {
       console.error("Failed to load products data:", err);
-    } finally {
-      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    loadAll();
-  }, [loadAll]);
+    let active = true;
+    Promise.allSettled([
+      getAdminProducts(),
+      getAdminCategories(),
+      getAdminColors(),
+      getAdminMaterials(),
+    ])
+      .then(([prodsRes, catsRes, colsRes, matsRes]) => {
+        if (!active) return;
+        const prods = prodsRes.status === "fulfilled" ? prodsRes.value : [];
+        const cats =
+          catsRes.status === "fulfilled" && catsRes.value.length > 0
+            ? catsRes.value
+            : [
+                { id: 1, name: "Masalar", slug: "masalar", description: "Doğal masif yemek ve çalışma masaları", sort_order: 1, is_active: true },
+                { id: 2, name: "Sandalyeler & Banklar", slug: "sandalyeler-banklar", description: "Ergonomik ve dayanıklı masif ahşap oturma elemanları", sort_order: 2, is_active: true },
+                { id: 3, name: "Konsol & Büfeler", slug: "konsol-bufeler", description: "Şık depolama çözümleri ve estetik konsollar", sort_order: 3, is_active: true },
+                { id: 4, name: "Kitaplıklar & Raflar", slug: "kitapliklar-raflar", description: "Modüler ve dayanıklı masif ahşap kitaplık sistemleri", sort_order: 4, is_active: true },
+                { id: 5, name: "Sehpalar", slug: "sehpalar", description: "Orta ve yan masif ahşap sehpalar", sort_order: 5, is_active: true },
+              ];
+        const cols = colsRes.status === "fulfilled" ? colsRes.value : [];
+        const mats = matsRes.status === "fulfilled" ? matsRes.value : [];
+
+        setProducts(prods);
+        setCategories(cats);
+        setColors(cols);
+        setMaterials(mats);
+        if (cats.length > 0) {
+          setFormCategoryId((prev) => (prev > 0 ? prev : cats[0].id));
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load products data:", err);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleDeactivate = async (id: number) => {
     if (!confirm("Bu ürünü pasife almak istediğinizden emin misiniz?")) return;
@@ -378,6 +415,48 @@ export default function AdminProductsPage() {
                   />
                 </div>
               </div>
+
+              {colors.length > 0 && (
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-[#504441] mb-1">Renk Seçenekleri</label>
+                  <div className="flex flex-wrap gap-2">
+                    {colors.map((c) => (
+                      <label key={c.id} className="flex items-center gap-1.5 text-xs bg-[#f6f3f2] p-1.5 rounded cursor-pointer border border-[#e5e2e1]">
+                        <input
+                          type="checkbox"
+                          checked={formColorIds.includes(c.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) setFormColorIds([...formColorIds, c.id]);
+                            else setFormColorIds(formColorIds.filter((id) => id !== c.id));
+                          }}
+                        />
+                        {c.name}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {materials.length > 0 && (
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-[#504441] mb-1">Malzeme Seçenekleri</label>
+                  <div className="flex flex-wrap gap-2">
+                    {materials.map((m) => (
+                      <label key={m.id} className="flex items-center gap-1.5 text-xs bg-[#f6f3f2] p-1.5 rounded cursor-pointer border border-[#e5e2e1]">
+                        <input
+                          type="checkbox"
+                          checked={formMaterialIds.includes(m.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) setFormMaterialIds([...formMaterialIds, m.id]);
+                            else setFormMaterialIds(formMaterialIds.filter((id) => id !== m.id));
+                          }}
+                        />
+                        {m.name}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="flex gap-6 items-center border-t border-[#e5e2e1] pt-3">
                 <label className="flex items-center gap-2 text-sm text-[#442a22] font-medium cursor-pointer">

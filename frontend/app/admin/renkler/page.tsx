@@ -19,20 +19,28 @@ export default function AdminColorsPage() {
   const [savingEdit, setSavingEdit] = useState(false);
 
   const loadColors = useCallback(async () => {
-    setLoading(true);
     try {
       const data = await getAdminColors();
       setColors(data);
     } catch (err) {
       console.error("Failed to load colors:", err);
-    } finally {
-      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    loadColors();
-  }, [loadColors]);
+    let active = true;
+    getAdminColors()
+      .then((data) => {
+        if (active) setColors(data);
+      })
+      .catch((err) => console.error("Failed to load colors:", err))
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
