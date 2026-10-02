@@ -10,6 +10,7 @@ class ColorRead(BaseModel):
     name: str
     hex_code: Optional[str] = None
     texture_url: Optional[str] = None
+    is_active: bool = True
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -17,6 +18,7 @@ class MaterialRead(BaseModel):
     id: int
     name: str
     description: Optional[str] = None
+    is_active: bool = True
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -38,6 +40,7 @@ class ProductListItem(BaseModel):
     primary_image: Optional[ProductImageRead] = None
     is_featured: bool
     is_customizable: bool
+    is_active: bool = True
     colors: List[ColorRead] = []
 
     model_config = ConfigDict(from_attributes=True)
@@ -53,6 +56,7 @@ class ProductDetail(BaseModel):
     default_depth: Optional[Decimal] = None
     is_customizable: bool
     is_featured: bool
+    is_active: bool = True
     category: CategoryRead
     images: List[ProductImageRead] = []
     colors: List[ColorRead] = []

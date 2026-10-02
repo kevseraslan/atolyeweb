@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: ProductDetailPageProps): Prom
   const product = await getProductBySlug(resolvedParams.slug);
   const siteName = getSiteName();
 
-  if (!product || !product.is_active || (product.category && product.category.is_active === false)) {
+  if (!product || product.is_active === false || (product.category && product.category.is_active === false)) {
     return {
       title: `Ürün Bulunamadı | ${siteName}`,
       description: "Aradığınız özel üretim mobilya modeli bulunamadı.",
@@ -62,7 +62,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
   const resolvedParams = await params;
   const product = await getProductBySlug(resolvedParams.slug);
 
-  if (!product || !product.is_active || (product.category && product.category.is_active === false)) {
+  if (!product || product.is_active === false || (product.category && product.category.is_active === false)) {
     notFound();
   }
 

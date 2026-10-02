@@ -7,5 +7,6 @@ class CategoryRead(BaseModel):
     slug: str
     description: Optional[str] = None
     sort_order: int
+    is_active: bool = True
 
     model_config = ConfigDict(from_attributes=True)
