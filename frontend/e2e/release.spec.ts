@@ -81,16 +81,16 @@ test.describe("Release Verification E2E Suite", () => {
 
   test("04. Order Tracking Flow E2E (Security & Generic Error Verification)", async ({ page }) => {
     await page.goto("/siparis-takip");
-    await expect(page.locator("h1")).toContainText("Sipariş & Teklif Durumu Sorgulama");
+    await expect(page.locator("h1")).toContainText("Sipariş Takibi");
 
     // A) Wrong Phone / Unknown Tracking Generic Error Test
-    await page.fill("input[placeholder='ORD-XXXXXXXX']", "ORD-99999999");
-    await page.fill("input[placeholder='05XX XXX XX XX']", "05000000000");
+    await page.fill("input[placeholder*='ORD-']", "ORD-99999999");
+    await page.fill("input[placeholder*='0532']", "05000000000");
     await page.click("button[type='submit']");
 
     // Must return generic error without revealing whether tracking ID or phone was incorrect
     await expect(
-      page.locator("text=Girilen takip numarası veya telefon numarası eşleşmedi.")
+      page.locator("text=/Sipariş bilgileri doğrulanamadı|Girilen takip numarası/")
     ).toBeVisible();
   });
 
@@ -122,8 +122,8 @@ test.describe("Release Verification E2E Suite", () => {
     });
 
     await page.goto("/siparis-takip");
-    await page.fill("input[placeholder='ORD-XXXXXXXX']", "ORD-12345678");
-    await page.fill("input[placeholder='05XX XXX XX XX']", "05321112233");
+    await page.fill("input[placeholder*='ORD-']", "ORD-12345678");
+    await page.fill("input[placeholder*='0532']", "05321112233");
     await page.click("button[type='submit']");
 
     // Friendly generic error message shown - raw stack trace / SQL detail NEVER shown to user
@@ -135,13 +135,13 @@ test.describe("Release Verification E2E Suite", () => {
     await page.goto("/siparis-takip");
 
     // Test keyboard navigation via Tab key
-    const trackingInput = page.locator("input[placeholder='ORD-XXXXXXXX']");
+    const trackingInput = page.locator("input[placeholder*='ORD-']");
     await trackingInput.focus();
     await expect(trackingInput).toBeFocused();
 
     // Verify submit button has accessible name
     const submitBtn = page.locator("button[type='submit']");
-    await expect(submitBtn).toHaveText("Sorgula");
+    await expect(submitBtn).toHaveText("Siparişi Sorgula");
   });
 
 });

@@ -32,6 +32,37 @@ DEFAULT_COLORS = [
     {"name": "Ham Ahşap / Naturel", "hex_code": "#D7CCC8", "sort_order": 6, "is_active": True},
 ]
 
+from app.models.product import Product
+
+DEFAULT_PRODUCTS = [
+    {
+        "category_id": 1,
+        "name": "Masif Meşe Yemek Masası",
+        "slug": "masif-mese-yemek-masasi",
+        "short_description": "Doğal masif meşe ağacından üretilmiş 8 kişilik yemek masası",
+        "description": "El işçiliği doğal masif meşe masamız atölyemizde özel cila ile korunmaktadır.",
+        "default_width": 200,
+        "default_height": 76,
+        "default_depth": 90,
+        "is_customizable": True,
+        "is_featured": True,
+        "is_active": True,
+    },
+    {
+        "category_id": 5,
+        "name": "Masif Ceviz Orta Sehpa",
+        "slug": "masif-ceviz-orta-sehpa",
+        "short_description": "Doğal masif ceviz orta sehpa",
+        "description": "Zengin ceviz dokulu estetik sehpa.",
+        "default_width": 120,
+        "default_height": 45,
+        "default_depth": 60,
+        "is_customizable": True,
+        "is_featured": True,
+        "is_active": True,
+    },
+]
+
 async def seed_initial_data_if_empty():
     async with AsyncSessionLocal() as db:
         try:
@@ -62,7 +93,16 @@ async def seed_initial_data_if_empty():
                 await db.commit()
                 logger.info(f"Successfully seeded {len(DEFAULT_COLORS)} colors.")
 
-            # 4. Site Settings
+            # 4. Products
+            prod_count = (await db.execute(select(func.count(Product.id)))).scalar_one()
+            if prod_count == 0:
+                logger.info("Database has 0 products. Seeding default products...")
+                for item in DEFAULT_PRODUCTS:
+                    db.add(Product(**item))
+                await db.commit()
+                logger.info(f"Successfully seeded {len(DEFAULT_PRODUCTS)} products.")
+
+            # 5. Site Settings
             set_count = (await db.execute(select(func.count(SiteSettings.id)))).scalar_one()
             if set_count == 0:
                 logger.info("Database has 0 site settings. Seeding default site settings...")

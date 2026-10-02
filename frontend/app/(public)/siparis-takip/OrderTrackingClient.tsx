@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/Badge";
 import { trackOrder } from "@/features/order-tracking/api";
 import { OrderTrackingResponse } from "@/features/order-tracking/types";
 import { getStatusConfig } from "@/features/order-tracking/status";
+import { ApiError } from "@/lib/api/errors";
 
 export function OrderTrackingClient() {
   const [trackingNumber, setTrackingNumber] = useState("");
@@ -33,10 +34,12 @@ export function OrderTrackingClient() {
         phone: phone.trim(),
       });
       setOrderData(res);
-    } catch {
+    } catch (err) {
       setOrderData(null);
       setErrorMessage(
-        "Sipariş bilgileri doğrulanamadı. Lütfen takip numaranızı ve telefon numaranızı kontrol edip tekrar deneyiniz."
+        err instanceof ApiError && err.status === 500
+          ? err.message
+          : "Sipariş bilgileri doğrulanamadı. Lütfen takip numaranızı ve telefon numaranızı kontrol edip tekrar deneyiniz."
       );
     } finally {
       setLoading(false);
