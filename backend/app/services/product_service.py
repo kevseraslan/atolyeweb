@@ -1,3 +1,5 @@
+import re
+import unicodedata
 from math import ceil
 from typing import Optional, List
 from sqlalchemy import select, func
@@ -11,6 +13,22 @@ from app.models.product_image import ProductImage
 from app.schemas.product import ProductListItem, ProductDetail, ProductImageRead, PaginatedResponse, CategoryRead, ColorRead, MaterialRead
 
 class ProductService:
+    @staticmethod
+    def generate_slug(text: str) -> str:
+        tr_map = {
+            'ı': 'i', 'I': 'i', 'İ': 'i',
+            'ğ': 'g', 'Ğ': 'g',
+            'ü': 'u', 'Ü': 'u',
+            'ş': 's', 'Ş': 's',
+            'ö': 'o', 'Ö': 'o',
+            'ç': 'c', 'Ç': 'c',
+        }
+        for tr_char, eng_char in tr_map.items():
+            text = text.replace(tr_char, eng_char)
+        text = unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode('utf-8')
+        text = re.sub(r'[^\w\s-]', '', text.lower()).strip()
+        return re.sub(r'[-\s]+', '-', text)
+
     @staticmethod
     async def get_active_products(
         db: AsyncSession,
@@ -134,6 +152,50 @@ class ProductService:
             is_customizable=product.is_customizable,
             is_featured=product.is_featured,
             category=CategoryRead.model_validate(product.category),
+            images=[ProductImageRead.model_validate(img) for img in sorted_images],
+            colors=[ColorRead.model_validate(c) for c in product.colors if c.is_active],
+            materials=[MaterialRead.model_validate(m) for m in product.materials if m.is_active],
+        )
+
+    @staticmethod
+    async def get_by_id_or_slug(db: AsyncSession, id_or_slug: str) -> ProductDetail:
+        stmt = (
+            select(Product)
+            .options(
+                selectinload(Product.category),
+                selectinload(Product.images),
+                selectinload(Product.colors),
+                selectinload(Product.materials),
+            )
+        )
+        if id_or_slug.isdigit():
+            stmt = stmt.where(Product.id == int(id_or_slug))
+        else:
+            stmt = stmt.where(Product.slug == id_or_slug)
+
+        result = await db.execute(stmt)
+        product = result.scalar_one_or_none()
+
+        if not product:
+            raise NotFoundException(message=f"Product '{id_or_slug}' not found")
+
+        sorted_images = sorted(
+            product.images,
+            key=lambda img: (not img.is_primary, img.sort_order, img.id)
+        )
+
+        return ProductDetail(
+            id=product.id,
+            name=product.name,
+            slug=product.slug,
+            short_description=product.short_description,
+            description=product.description,
+            default_width=product.default_width,
+            default_height=product.default_height,
+            default_depth=product.default_depth,
+            is_customizable=product.is_customizable,
+            is_featured=product.is_featured,
+            category=CategoryRead.model_validate(product.category) if product.category else None,
             images=[ProductImageRead.model_validate(img) for img in sorted_images],
             colors=[ColorRead.model_validate(c) for c in product.colors if c.is_active],
             materials=[MaterialRead.model_validate(m) for m in product.materials if m.is_active],
