@@ -1,5 +1,10 @@
 import type { NextConfig } from "next";
 
+const isProd = process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL);
+const BACKEND_URL =
+  process.env.INTERNAL_API_URL?.replace(/\/api\/v1\/?$/, "") ||
+  (isProd ? "https://atolyeweb.onrender.com" : "http://127.0.0.1:8000");
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
@@ -19,7 +24,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/v1/:path*",
-        destination: "http://127.0.0.1:8000/api/v1/:path*",
+        destination: `${BACKEND_URL}/api/v1/:path*`,
       },
     ];
   },
