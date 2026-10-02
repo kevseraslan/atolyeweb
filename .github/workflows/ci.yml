@@ -130,58 +130,38 @@ jobs:
           cd backend
           alembic upgrade head
 
-      - name: Start FastAPI Backend Server
-        env:
-          DATABASE_URL: postgresql+asyncpg://test_user:test_password@localhost:5432/furniture_workshop_test
-          AUTH_SECRET: test_secret_key_minimum_32_characters_for_ci_build
-          APP_ENV: test
-        run: |
-          cd backend
-          nohup python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 > uvicorn.log 2>&1 &
-
-      - name: Poll Backend Health Readiness
-        run: |
-          for i in {1..30}; do
-            if curl -s http://127.0.0.1:8000/api/v1/health/ready | grep -q "ready"; then
-              echo "Backend is ready!"
-              break
-            fi
-            echo "Waiting for backend..."
-            sleep 1
-          done
-
       - name: Install Frontend Dependencies & Playwright Browsers
         run: |
           cd frontend
           npm ci
           npx playwright install chromium --with-deps
 
-      - name: Build and Start Production Next.js Server
+      - name: Run E2E Test Suite
         env:
+          DATABASE_URL: postgresql+asyncpg://test_user:test_password@localhost:5432/furniture_workshop_test
+          AUTH_SECRET: test_secret_key_minimum_32_characters_for_ci_build
+          APP_ENV: test
           NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3000
           NEXT_PUBLIC_API_URL: http://127.0.0.1:8000/api/v1
           NEXT_PUBLIC_SITE_INDEXABLE: "false"
+          PLAYWRIGHT_TEST_BASE_URL: http://127.0.0.1:3000
         run: |
-          cd frontend
-          npm run build
-          nohup npm run start -- -p 3000 > next.log 2>&1 &
+          cd backend
+          python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 &
 
-      - name: Poll Frontend Server Readiness
-        run: |
-          for i in {1..30}; do
-            if curl -s -I http://127.0.0.1:3000 | grep -q "200"; then
-              echo "Frontend is ready!"
+          cd ../frontend
+          npm run build
+          npm run start -- -p 3000 &
+
+          for i in {1..40}; do
+            if curl -s http://127.0.0.1:8000/api/v1/health | grep -q "ok" && curl -s -I http://127.0.0.1:3000 | grep -q "200"; then
+              echo "Both servers are ready!"
               break
             fi
-            echo "Waiting for frontend..."
+            echo "Waiting for servers..."
             sleep 1
           done
 
-      - name: Run Playwright E2E Suite
-        env:
-          PLAYWRIGHT_TEST_BASE_URL: http://127.0.0.1:3000
-        run: |
-          cd frontend
           npm run test:e2e
 
       - name: Upload Playwright Artifacts on Failure
