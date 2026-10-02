@@ -20,7 +20,7 @@ export default defineConfig({
     },
     {
       name: "chromium-mobile",
-      use: { ...devices["iPhone 12"], viewport: { width: 375, height: 812 } },
+      use: { ...devices["Pixel 7"], viewport: { width: 375, height: 812 } },
     },
   ],
 });

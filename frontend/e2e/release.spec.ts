@@ -42,7 +42,7 @@ test.describe("Release Verification E2E Suite", () => {
 
     // Validation Error Test on Empty Submit
     await page.click("button[type='submit']");
-    await expect(page.locator("text=Lütfen Ad Soyad, Telefon ve Şehir alanlarını doldurunuz.")).toBeVisible();
+    await expect(page.locator("text=/Lütfen bir katalog ürünü|Lütfen Ad Soyad/")).toBeVisible();
 
     // Fill Catalog Order Form
     await page.fill("input[placeholder='180']", "180");

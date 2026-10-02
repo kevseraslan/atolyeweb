@@ -134,7 +134,7 @@ jobs:
         run: |
           cd frontend
           npm ci
-          npx playwright install chromium --with-deps
+          npx playwright install --with-deps
 
       - name: Build Next.js Production Bundle
         env:
