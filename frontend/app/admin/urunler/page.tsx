@@ -43,25 +43,31 @@ export default function AdminProductsPage() {
   const loadAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [prods, cats, cols, mats] = await Promise.all([
+      const [prodsRes, catsRes, colsRes, matsRes] = await Promise.allSettled([
         getAdminProducts(),
         getAdminCategories(),
         getAdminColors(),
         getAdminMaterials(),
       ]);
+
+      const prods = prodsRes.status === "fulfilled" ? prodsRes.value : [];
+      const cats = catsRes.status === "fulfilled" ? catsRes.value : [];
+      const cols = colsRes.status === "fulfilled" ? colsRes.value : [];
+      const mats = matsRes.status === "fulfilled" ? matsRes.value : [];
+
       setProducts(prods);
       setCategories(cats);
       setColors(cols);
       setMaterials(mats);
-      if (cats.length > 0 && formCategoryId === 0) {
-        setFormCategoryId(cats[0].id);
+      if (cats.length > 0) {
+        setFormCategoryId((prev) => (prev > 0 ? prev : cats[0].id));
       }
     } catch (err) {
       console.error("Failed to load products data:", err);
     } finally {
       setLoading(false);
     }
-  }, [formCategoryId]);
+  }, []);
 
   useEffect(() => {
     loadAll();
@@ -80,7 +86,8 @@ export default function AdminProductsPage() {
 
   const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formName.trim() || !formCategoryId) {
+    const targetCategoryId = formCategoryId || (categories.length > 0 ? categories[0].id : 0);
+    if (!formName.trim() || !targetCategoryId) {
       setMessage("Lütfen ürün adı ve kategori seçiniz.");
       return;
     }
@@ -89,7 +96,7 @@ export default function AdminProductsPage() {
 
     try {
       await createAdminProduct({
-        category_id: formCategoryId,
+        category_id: targetCategoryId,
         name: formName.trim(),
         short_description: formShortDesc.trim() || undefined,
         description: formDesc.trim() || undefined,
@@ -285,16 +292,23 @@ export default function AdminProductsPage() {
                 <div>
                   <label className="block text-xs font-semibold uppercase text-[#504441] mb-1">Kategori *</label>
                   <select
-                    value={formCategoryId}
+                    value={formCategoryId || (categories.length > 0 ? categories[0].id : "")}
                     onChange={(e) => setFormCategoryId(Number(e.target.value))}
-                    className="w-full p-2.5 border border-[#d4c3be] rounded text-sm"
+                    className="w-full p-2.5 border border-[#d4c3be] rounded text-sm bg-white"
                     required
                   >
-                    {categories.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
+                    {categories.length === 0 ? (
+                      <option value="" disabled>Kategori bulunamadı</option>
+                    ) : (
+                      <>
+                        <option value="" disabled>-- Kategori Seçiniz --</option>
+                        {categories.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </>
+                    )}
                   </select>
                 </div>
               </div>

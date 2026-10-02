@@ -7,18 +7,21 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { getProducts } from "@/features/products/api";
-import { ProductListItem, Color, Material } from "@/features/products/types";
-import { createOrder, getActiveColors, getActiveMaterials } from "@/features/orders/api";
+import { ProductListItem, Color, Material, Category } from "@/features/products/types";
+import { createOrder, getActiveColors, getActiveMaterials, getActiveCategories, getActiveProducts } from "@/features/orders/api";
 import { OrderCreatedResponse } from "@/features/orders/types";
 
 export function SpecialOrderClient() {
   const [products, setProducts] = useState<ProductListItem[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [colors, setColors] = useState<Color[]>([]);
   const [materials, setMaterials] = useState<Material[]>([]);
   const [loadingInitial, setLoadingInitial] = useState(true);
 
   // Form State
   const [selectionType, setSelectionType] = useState<"catalog" | "custom">("catalog");
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("all");
+  const [customCategory, setCustomCategory] = useState<string>("");
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
   const [customProductName, setCustomProductName] = useState("");
   const [width, setWidth] = useState<string>("");
@@ -42,16 +45,55 @@ export function SpecialOrderClient() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [prodData, colData, matData] = await Promise.all([
-          getProducts({ pageSize: 100 }),
+        const [prodItems, catData, colData, matData] = await Promise.all([
+          getActiveProducts(),
+          getActiveCategories(),
           getActiveColors(),
           getActiveMaterials(),
         ]);
-        setProducts(prodData.items);
+        setProducts(prodItems);
+        setCategories(catData);
         setColors(colData);
         setMaterials(matData);
-        if (prodData.items.length > 0) {
-          setSelectedProductId(prodData.items[0].id);
+
+        if (catData.length > 0 && !customCategory) {
+          setCustomCategory(catData[0].name);
+        }
+
+        // Check if URL has query parameters (e.g. ?product=3 or ?category=masalar)
+        if (typeof window !== "undefined") {
+          const params = new URLSearchParams(window.location.search);
+          const paramProdId = params.get("product") || params.get("product_id");
+          const paramCatSlug = params.get("category");
+
+          if (paramProdId) {
+            const found = prodItems.find((p) => String(p.id) === paramProdId);
+            if (found) {
+              setSelectedProductId(found.id);
+              if (found.category?.id) {
+                setSelectedCategoryId(String(found.category.id));
+              }
+              if (found.default_width) setWidth(String(found.default_width));
+              if (found.default_height) setHeight(String(found.default_height));
+              if (found.default_depth) setDepth(String(found.default_depth));
+              return;
+            }
+          }
+
+          if (paramCatSlug) {
+            const catFound = catData.find((c) => c.slug === paramCatSlug);
+            if (catFound) {
+              setSelectedCategoryId(String(catFound.id));
+              setCustomCategory(catFound.name);
+            }
+          }
+        }
+
+        if (prodItems.length > 0) {
+          setSelectedProductId(prodItems[0].id);
+          if (prodItems[0].default_width) setWidth(String(prodItems[0].default_width));
+          if (prodItems[0].default_height) setHeight(String(prodItems[0].default_height));
+          if (prodItems[0].default_depth) setDepth(String(prodItems[0].default_depth));
         }
       } catch (err) {
         console.error("Failed to load order form options:", err);
@@ -62,10 +104,36 @@ export function SpecialOrderClient() {
     loadData();
   }, []);
 
+  const filteredProducts = selectedCategoryId === "all"
+    ? products
+    : products.filter((p) => String(p.category?.id) === selectedCategoryId);
+
   const selectedProduct = products.find((p) => p.id === selectedProductId);
-  const availableColors = selectedProduct && selectedProduct.colors.length > 0
+  const availableColors = selectedProduct && selectedProduct.colors && selectedProduct.colors.length > 0
     ? selectedProduct.colors
     : colors;
+
+  const handleCategoryFilterChange = (catIdStr: string) => {
+    setSelectedCategoryId(catIdStr);
+    const matching = catIdStr === "all"
+      ? products
+      : products.filter((p) => String(p.category?.id) === catIdStr);
+    if (matching.length > 0) {
+      handleProductSelect(matching[0].id);
+    } else {
+      setSelectedProductId(null);
+    }
+  };
+
+  const handleProductSelect = (prodId: number) => {
+    setSelectedProductId(prodId);
+    const prod = products.find((p) => p.id === prodId);
+    if (prod) {
+      if (prod.default_width) setWidth(String(prod.default_width));
+      if (prod.default_height) setHeight(String(prod.default_height));
+      if (prod.default_depth) setDepth(String(prod.default_depth));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,10 +154,16 @@ export function SpecialOrderClient() {
 
     setSubmitting(true);
 
+    const fullCustomName = selectionType === "custom"
+      ? (customCategory && customCategory !== "Özel / Diğer Mobilya"
+          ? `[${customCategory}] ${customProductName.trim()}`
+          : customProductName.trim())
+      : null;
+
     try {
       const res = await createOrder({
         product_id: selectionType === "catalog" ? selectedProductId : null,
-        custom_product_name: selectionType === "custom" ? customProductName.trim() : null,
+        custom_product_name: fullCustomName,
         color_id: selectedColorId,
         material_id: selectedMaterialId,
         requested_width: width ? parseFloat(width) : null,
@@ -213,7 +287,7 @@ export function SpecialOrderClient() {
           {/* Section 1: Product Choice */}
           <div>
             <h3 className="font-serif text-xl font-semibold text-[#442a22] mb-4 border-b border-[#e5e2e1] pb-2">
-              1. Ürün Seçimi
+              1. Ürün &amp; Kategori Seçimi
             </h3>
             <div className="flex gap-6 mb-6">
               <label className="flex items-center gap-2 text-sm font-medium text-[#442a22] cursor-pointer">
@@ -241,38 +315,89 @@ export function SpecialOrderClient() {
             </div>
 
             {selectionType === "catalog" ? (
-              <div>
-                <label className="block text-xs font-semibold uppercase text-[#504441] tracking-wider mb-2">
-                  Katalog Ürünü
-                </label>
-                {loadingInitial ? (
-                  <p className="text-sm text-[#827470]">Yükleniyor...</p>
-                ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-[#504441] tracking-wider mb-2">
+                    Kategori Seçimi / Filtresi
+                  </label>
                   <select
-                    value={selectedProductId || ""}
-                    onChange={(e) => setSelectedProductId(Number(e.target.value))}
+                    value={selectedCategoryId}
+                    onChange={(e) => handleCategoryFilterChange(e.target.value)}
                     className="w-full p-3 bg-white border border-[#d4c3be] rounded-lg text-sm text-[#1b1c1c] focus:outline-none focus:border-[#442a22]"
                   >
-                    {products.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name} ({p.category.name})
-                      </option>
-                    ))}
+                    <option value="all">Tüm Kategoriler ({products.length} Ürün)</option>
+                    {categories.map((c) => {
+                      const count = products.filter((p) => p.category?.id === c.id).length;
+                      return (
+                        <option key={c.id} value={String(c.id)}>
+                          {c.name} ({count} Ürün)
+                        </option>
+                      );
+                    })}
                   </select>
-                )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-[#504441] tracking-wider mb-2">
+                    Katalog Ürünü *
+                  </label>
+                  {loadingInitial ? (
+                    <p className="text-sm text-[#827470]">Yükleniyor...</p>
+                  ) : filteredProducts.length === 0 ? (
+                    <div className="p-3 bg-[#f6f3f2] border border-[#d4c3be] rounded-lg text-xs text-[#827470]">
+                      Bu kategoride henüz ürün bulunmuyor.
+                    </div>
+                  ) : (
+                    <select
+                      value={selectedProductId || ""}
+                      onChange={(e) => handleProductSelect(Number(e.target.value))}
+                      className="w-full p-3 bg-white border border-[#d4c3be] rounded-lg text-sm text-[#1b1c1c] focus:outline-none focus:border-[#442a22]"
+                      required
+                    >
+                      {filteredProducts.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name} ({p.category?.name || "Mobilya"})
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
               </div>
             ) : (
-              <div>
-                <label className="block text-xs font-semibold uppercase text-[#504441] tracking-wider mb-2">
-                  Özel Ürün Adı / Açıklaması *
-                </label>
-                <input
-                  type="text"
-                  placeholder="Örn: 8 Kişilik Masif Meşe Oval Yemek Masası"
-                  value={customProductName}
-                  onChange={(e) => setCustomProductName(e.target.value)}
-                  className="w-full p-3 bg-white border border-[#d4c3be] rounded-lg text-sm text-[#1b1c1c] focus:outline-none focus:border-[#442a22]"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-[#504441] tracking-wider mb-2">
+                    Mobilya Kategorisi / Türü *
+                  </label>
+                  <select
+                    value={customCategory}
+                    onChange={(e) => setCustomCategory(e.target.value)}
+                    className="w-full p-3 bg-white border border-[#d4c3be] rounded-lg text-sm text-[#1b1c1c] focus:outline-none focus:border-[#442a22]"
+                    required
+                  >
+                    <option value="" disabled>-- Kategori Seçiniz --</option>
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.name}>
+                        {c.name}
+                      </option>
+                    ))}
+                    <option value="Özel / Diğer Mobilya">Özel / Diğer Mobilya</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-[#504441] tracking-wider mb-2">
+                    Özel Ürün Adı / Açıklaması *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Örn: 8 Kişilik Masif Meşe Oval Yemek Masası"
+                    value={customProductName}
+                    onChange={(e) => setCustomProductName(e.target.value)}
+                    className="w-full p-3 bg-white border border-[#d4c3be] rounded-lg text-sm text-[#1b1c1c] focus:outline-none focus:border-[#442a22]"
+                  />
+                </div>
               </div>
             )}
           </div>

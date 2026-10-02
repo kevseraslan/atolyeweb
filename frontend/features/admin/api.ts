@@ -178,7 +178,17 @@ export async function deleteProductImage(productId: number, imageId: number): Pr
 }
 
 export async function getAdminCategories(): Promise<Category[]> {
-  return await fetchAdminApi<Category[]>("/admin/categories");
+  try {
+    const cats = await fetchAdminApi<Category[]>("/admin/categories");
+    if (Array.isArray(cats) && cats.length > 0) return cats;
+  } catch (err) {
+    console.warn("getAdminCategories admin endpoint failed, falling back to public categories", err);
+  }
+  try {
+    return await fetchClientApi<Category[]>("/categories");
+  } catch {
+    return [];
+  }
 }
 
 export async function createAdminCategory(data: AdminCategoryCreateUpdateInput): Promise<Category> {
@@ -196,7 +206,17 @@ export async function updateAdminCategory(categoryId: number, data: Partial<Admi
 }
 
 export async function getAdminColors(): Promise<Color[]> {
-  return await fetchAdminApi<Color[]>("/admin/colors");
+  try {
+    const cols = await fetchAdminApi<Color[]>("/admin/colors");
+    if (Array.isArray(cols) && cols.length > 0) return cols;
+  } catch (err) {
+    console.warn("getAdminColors admin endpoint failed, falling back to public colors", err);
+  }
+  try {
+    return await fetchClientApi<Color[]>("/colors");
+  } catch {
+    return [];
+  }
 }
 
 export async function createAdminColor(data: AdminColorCreateUpdateInput): Promise<Color> {
@@ -214,7 +234,17 @@ export async function updateAdminColor(colorId: number, data: Partial<AdminColor
 }
 
 export async function getAdminMaterials(): Promise<Material[]> {
-  return await fetchAdminApi<Material[]>("/admin/materials");
+  try {
+    const mats = await fetchAdminApi<Material[]>("/admin/materials");
+    if (Array.isArray(mats) && mats.length > 0) return mats;
+  } catch (err) {
+    console.warn("getAdminMaterials admin endpoint failed, falling back to public materials", err);
+  }
+  try {
+    return await fetchClientApi<Material[]>("/materials");
+  } catch {
+    return [];
+  }
 }
 
 export async function createAdminMaterial(data: AdminMaterialCreateUpdateInput): Promise<Material> {
