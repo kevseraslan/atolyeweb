@@ -23,7 +23,7 @@ logger = logging.getLogger("app.admin_auth_service")
 ph = PasswordHasher()
 SECRET_KEY = settings.AUTH_SECRET
 ALGORITHM = "HS256"
-COOKIE_NAME = "__Host-admin_session" if settings.APP_ENV == "production" else "admin_session"
+COOKIE_NAME = "admin_session"
 TOKEN_EXPIRE_HOURS = 4  # Reduced lifetime from 8h to 4h for optimal UX/Security balance
 
 def hash_password(password: str) -> str:
@@ -84,7 +84,7 @@ class AdminAuthService:
 
         token = create_admin_token(admin)
         csrf_token = generate_csrf_token(admin.id, admin.session_version)
-        is_prod = settings.APP_ENV == "production"
+        is_prod = settings.APP_ENV.lower() in ["production", "prod", "staging"] or settings.FRONTEND_URL.startswith("https://")
 
         response.set_cookie(
             key=COOKIE_NAME,
@@ -115,9 +115,16 @@ class AdminAuthService:
         admin.session_version += 1
         await db.commit()
 
-        is_prod = settings.APP_ENV == "production"
+        is_prod = settings.APP_ENV.lower() in ["production", "prod", "staging"] or settings.FRONTEND_URL.startswith("https://")
         response.delete_cookie(
             key=COOKIE_NAME,
+            path="/",
+            httponly=True,
+            samesite="none" if is_prod else "lax",
+            secure=is_prod,
+        )
+        response.delete_cookie(
+            key="__Host-admin_session",
             path="/",
             httponly=True,
             samesite="none" if is_prod else "lax",
