@@ -1,16 +1,19 @@
 import { ApiError } from "./errors";
 
 function getClientApiBaseUrl(): string {
-  if (process.env.NEXT_PUBLIC_API_URL && process.env.NEXT_PUBLIC_API_URL.startsWith("http")) {
-    return process.env.NEXT_PUBLIC_API_URL;
-  }
   if (typeof window !== "undefined") {
     const host = window.location.hostname;
     if (host !== "localhost" && host !== "127.0.0.1") {
-      return "https://atolyeweb.onrender.com/api/v1";
+      // In browser production (Vercel), use same-origin relative path /api/v1.
+      // Next.js rewrites proxy these requests to Render, making session cookies 1st-party and 100% reliable across all browsers!
+      return "/api/v1";
     }
   }
-  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+
+  if (process.env.NEXT_PUBLIC_API_URL && process.env.NEXT_PUBLIC_API_URL.startsWith("http")) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  return "http://localhost:8000/api/v1";
 }
 
 export async function fetchClientApi<T>(
